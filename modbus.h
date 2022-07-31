@@ -13,9 +13,21 @@
 #define __MODBUS_H
 
 #ifdef __cplusplus
-extern "C"
-{
+extern "C" {
 #endif
+
+
+/* Modbus function codes. */
+
+
+/* Modbus BROADCAST Address */
+
+
+/* Modbus Protocol Exceptions. */
+
+
+
+
 
 #ifdef __cplusplus
 }
