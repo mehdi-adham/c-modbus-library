@@ -16,6 +16,7 @@
     extern "C" {
 #endif
 
+unsigned short CRC16(unsigned char *puchMsg, unsigned short usDataLen);
 
 
 #ifdef __cplusplus
