@@ -9,7 +9,9 @@
  *
  */
 
+#include "modbus_rtu.h"
 #include <stdint.h>
+#include <stdbool.h>
 
 /**
  * @brief Table of CRC values for high–order byte
@@ -61,7 +63,11 @@ static char auchCRCLo[] = {
 
 /**
  * @brief This function calculate CRC for RTU Modbus Protocol.
- * @param puchMsg A pointer to the message buffer containing 
+ * @note This function performs the swapping of the high/low CRC bytes internally.
+ * The bytes are already swapped in the CRC value that is returned from the function.
+ * Therefore the CRC value returned from the function can be directly placed into
+ * the message for transmission.
+ * @param puchMsg A pointer to the message buffer containing
  * binary data to be used for generating the CRC.
  * @param usDataLen The quantity of bytes in the message buffer.
  * @retval returns the CRC as a type unsigned short.
@@ -78,4 +84,95 @@ unsigned short CRC16(unsigned char *puchMsg, unsigned short usDataLen)
         uchCRCLo = auchCRCLo[uIndex];
     }
     return (uchCRCHi << 8 | uchCRCLo);
+}
+
+/**
+ * @brief
+ *
+ * @param mbus_frame_buffer
+ * @param receive_uart_fun
+ * @return true or false
+ */
+bool Receive_byte_to_byte(unsigned char *mbus_frame_buffer, unsigned char (*receive_uart_fun)())
+{
+    static unsigned char uchCRCHi = 0xFF; /* high byte of CRC initialized */
+    static unsigned char uchCRCLo = 0xFF; /* low byte of CRC initialized */
+    static unsigned char uIndex;          /* will index into CRC lookup table */
+    unsigned short calculate_crc;
+    unsigned char rec_byte;
+
+    /* Get First field (Address Field)*/
+    rec_byte = (*receive_uart_fun)();
+
+    /* if Address field not match with slave ID return false */
+    if (rec_byte != SLAVE_ADDRESS)
+        return false;
+#ifdef DEBUG
+    else
+        printf("\nrec_byte == SLAVE_ADDRESS\n");
+#endif
+
+    /* Be assigned to the buffer value */
+    *mbus_frame_buffer++ = rec_byte;
+
+    /* Calculate the CRC of this field */
+    uIndex = uchCRCHi ^ rec_byte;
+    uchCRCHi = uchCRCLo ^ auchCRCHi[uIndex];
+    uchCRCLo = auchCRCLo[uIndex];
+
+    /* Extracting frame length from frame data */
+    int len = 8 - 1;
+
+    while (len)
+    {
+        /* check for Byte timeout 1.5C. if timeout 1.5C return false */
+        // timeout_1.5C;
+        rec_byte = (*receive_uart_fun)();
+        /* if(timeout_1.5C)
+            return false; */
+
+        /* Be assigned to the buffer value */
+        *mbus_frame_buffer++ = rec_byte;
+
+        if (len > 2)
+        {
+            /* Calculate the CRC of this field */
+            uIndex = uchCRCHi ^ rec_byte;
+            uchCRCHi = uchCRCLo ^ auchCRCHi[uIndex];
+            uchCRCLo = auchCRCLo[uIndex];
+        }
+        len--;
+    }
+    /* The calculated CRC is assigned in the value of calcul_crc */
+    calculate_crc = (uchCRCHi << 8 | uchCRCLo);
+
+    /* Check crc calculated, that is equal with CRC frame */
+    if (calculate_crc != (unsigned short)((*(mbus_frame_buffer - 2) << 8) | *(mbus_frame_buffer - 1)))
+        return false;
+#ifdef DEBUG
+    else
+        printf("\ncalculate_crc == frame crc\n");
+#endif
+    return true;
+}
+
+void MODBUS_RTU_MONITOR(unsigned char (*receive_uart_fun)())
+{
+    unsigned char fram_buf[MAX_BUFFER];
+    /* Wait while be silent bus for least 3.5 character. */
+    
+
+    /* Receive byte to byte from serial.
+     * if address field not match with slave ID return false
+     * if timeout 1.5C return false
+     */
+    bool ResultOfreceive = Receive_byte_to_byte(fram_buf, receive_uart_fun);
+    if (ResultOfreceive != true)
+    {
+        MODBUS_MONITOR();
+    }
+    else
+    {
+        MODBUS_FARME_PROCESS(fram_buf);
+    }
 }
