@@ -88,6 +88,24 @@ unsigned short CRC16(unsigned char *puchMsg, unsigned short usDataLen)
 /**
  * @brief
  *
+ * @note Template Frame For Test:
+ * {0x11, 0x01, 0x00, 0x13, 0x00, 0x25, 0x0E, 0xA6}
+ * {0x11, 0x02, 0x00, 0xC4, 0x00, 0x16, 0xBA, 0xA9}
+ * {0x11, 0x03, 0x00, 0x6B, 0x00, 0x03 ,0x76 ,0x87}
+ * {0x11, 0x04, 0x00, 0x08, 0x00, 0x01 ,0x07 ,0x58}
+ * {0x11, 0x05, 0x00, 0xAC, 0xFF, 0x00 ,0x4E ,0x8B}
+ * {0x11, 0x06, 0x00, 0x01, 0x00, 0x03 ,0x9A ,0x9B}
+ * {0x11, 0x07, 0x4C, 0x22}
+ * {0x11, 0x0B, 0x4C, 0x27}
+ * {0x11, 0x0C, 0x0D, 0xE5}
+ * {0x11, 0x0F, 0x00, 0x13, 0x00, 0x0A ,0x02 ,0xCD, 0x01, 0xBF, 0x0B}
+ * {0x11, 0x10, 0x00, 0x01, 0x00, 0x02 ,0x04 ,0x00, 0x0A, 0x01, 0x02, 0xC6, 0xF0}
+ * {0x11, 0x11, 0xCD, 0xEC}
+ * {0x11, 0x14, 0x0E, 0x06, 0x00, 0x04 ,0x00 ,0x01, 0x00, 0x02, 0x06, 0x00, 0x03, 0x00, 0x09, 0x00, 0x02, 0xF9, 0x38}
+ * {0x11, 0x15, 0x0D, 0x06, 0x00, 0x04 ,0x00 ,0x07, 0x00, 0x03, 0x06, 0xAF, 0x04, 0xBE, 0x10, 0x0D, 0xDB, 0xC7}
+ * {0x11, 0x16, 0x00, 0x04, 0x00, 0xF2 ,0x00 ,0x25, 0x66, 0xE2}
+ * {0x11, 0x17, 0x00, 0x04, 0x00, 0x06 ,0x00 ,0x0F, 0x00, 0x03, 0x06, 0x00, 0xFF, 0x00, 0xFF, 0x00, 0xFF, 0x1C, 0x56}
+ * {0x11, 0x18, 0x04, 0xDE, 0x07, 0x87}
  * @param mbus_frame_buffer
  * @param receive_uart_fun
  * @return true or false
@@ -132,23 +150,22 @@ bool Receive_byte_to_byte(unsigned char *mbus_frame_buffer, unsigned char (*rece
     uchCRCHi = uchCRCLo ^ auchCRCHi[uIndex];
     uchCRCLo = auchCRCLo[uIndex];
 
+#ifdef DEBUG
+    printf("fun [%d]\n", fun);
+#endif
+
     /* 3. **********************************************************/
     /* Extracting frame length (register or coil ...) from frame data */
     int len = 0;
-    /* Calculate len (byte count) for 1,2,3,4 function */
-    if (fun == 1 || fun == 2 || fun == 3 || fun == 4)
+    if (fun == Read_Coil_Status || fun == Read_Input_Status || fun == Read_Holding_Registers || fun == Read_Input_Registers || fun == Force_Single_Coil || fun == Preset_Single_Register)
     {
         len = 4;
     }
-    else if (fun == 5 || fun == 6)
-    {
-        len = 3;
-    }
-    else if (fun == 7 || fun == 11 || fun == 12 || fun == 17)
+    else if (fun == Read_Exception_Status || fun == Fetch_Comm_Event_Counter || fun == Fetch_Comm_Event_Log || fun == Report_Slave_ID)
     {
         len = 0;
     }
-    else if (fun == 15 || fun == 16)
+    else if (fun == Force_Multiple_Coils || fun == Preset_Multiple_Registers)
     {
         /* 3 */
         rec_byte = (*receive_uart_fun)();
@@ -192,7 +209,7 @@ bool Receive_byte_to_byte(unsigned char *mbus_frame_buffer, unsigned char (*rece
 
         len = rec_byte;
     }
-    else if (fun == 20 || fun == 21)
+    else if (fun == Read_General_Reference || fun == Write_General_Reference)
     {
         /* 3 */
         rec_byte = (*receive_uart_fun)();
@@ -204,11 +221,11 @@ bool Receive_byte_to_byte(unsigned char *mbus_frame_buffer, unsigned char (*rece
 
         len = rec_byte;
     }
-    else if (fun == 22)
+    else if (fun == Mask_Write_4X_Register)
     {
         len = 6;
     }
-    else if (fun == 23)
+    else if (fun == Read_Write_4X_Registers)
     {
         /* 3 */
         rec_byte = (*receive_uart_fun)();
@@ -274,27 +291,38 @@ bool Receive_byte_to_byte(unsigned char *mbus_frame_buffer, unsigned char (*rece
         uchCRCHi = uchCRCLo ^ auchCRCHi[uIndex];
         uchCRCLo = auchCRCLo[uIndex];
 
+        /* 11 */
+        rec_byte = (*receive_uart_fun)();
+        *mbus_frame_buffer++ = rec_byte;
+        /* Calculate the CRC of this field */
+        uIndex = uchCRCHi ^ rec_byte;
+        uchCRCHi = uchCRCLo ^ auchCRCHi[uIndex];
+        uchCRCLo = auchCRCLo[uIndex];
+
         len = rec_byte;
     }
-    else if (fun == 24)
+    else if (fun == Read_FIFO_Queue)
     {
         len = 2;
     }
 
 #ifdef DEBUG
-    printf("\nlen [%d]\n", len);
+    printf("len [%d]\n", len);
 #endif
+
     /* 4. **********************************************************/
     while (len)
     {
         /* check for Byte timeout 1.5C. if timeout 1.5C return false */
-        // timeout_1.5C;
         rec_byte = (*receive_uart_fun)();
-        /* if(timeout_1.5C)
-            return false; */
 
         /* Be assigned to the buffer value */
         *mbus_frame_buffer++ = rec_byte;
+
+        /* Calculate the CRC of this field */
+        uIndex = uchCRCHi ^ rec_byte;
+        uchCRCHi = uchCRCLo ^ auchCRCHi[uIndex];
+        uchCRCLo = auchCRCLo[uIndex];
 
         len--;
     }
@@ -303,24 +331,21 @@ bool Receive_byte_to_byte(unsigned char *mbus_frame_buffer, unsigned char (*rece
     rec_byte = (*receive_uart_fun)();
     /* Be assigned to the buffer value */
     *mbus_frame_buffer++ = rec_byte;
-    /* Calculate the CRC of this field */
-    uIndex = uchCRCHi ^ rec_byte;
-    uchCRCHi = uchCRCLo ^ auchCRCHi[uIndex];
-    uchCRCLo = auchCRCLo[uIndex];
 
     rec_byte = (*receive_uart_fun)();
     /* Be assigned to the buffer value */
     *mbus_frame_buffer++ = rec_byte;
-    /* Calculate the CRC of this field */
-    uIndex = uchCRCHi ^ rec_byte;
-    uchCRCHi = uchCRCLo ^ auchCRCHi[uIndex];
-    uchCRCLo = auchCRCLo[uIndex];
 
     /* The calculated CRC is assigned in the value of calcul_crc */
     calculate_crc = (uchCRCHi << 8 | uchCRCLo);
+    unsigned short frameCRC = (unsigned short)((*(mbus_frame_buffer - 2) << 8) | *(mbus_frame_buffer - 1));
+
+#ifdef DEBUG
+    printf("CRC Check  [0x%04X][0x%04X]\n", calculate_crc, frameCRC);
+#endif
 
     /* Check CRC calculated, that is equal with CRC frame */
-    if (calculate_crc != (unsigned short)((*(mbus_frame_buffer - 2) << 8) | *(mbus_frame_buffer - 1)))
+    if (calculate_crc != frameCRC)
         return false;
 
     return true;

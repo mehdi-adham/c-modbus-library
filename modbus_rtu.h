@@ -23,6 +23,26 @@ extern "C"
 #define MAX_BUFFER          256
 #define MAX_SLAVE_ADDRESS   247
 
+enum Modbus_Function_Name{
+    Read_Coil_Status = 1,
+    Read_Input_Status = 2,
+    Read_Holding_Registers = 3,
+    Read_Input_Registers = 4,
+    Force_Single_Coil = 5,
+    Preset_Single_Register = 6,
+    Read_Exception_Status = 7,
+    Fetch_Comm_Event_Counter = 11,
+    Fetch_Comm_Event_Log = 12,
+    Force_Multiple_Coils = 15,
+    Preset_Multiple_Registers = 16,
+    Report_Slave_ID = 17,
+    Read_General_Reference = 20,
+    Write_General_Reference = 21,
+    Mask_Write_4X_Register = 22,
+    Read_Write_4X_Registers = 23,
+    Read_FIFO_Queue =24
+};
+
 unsigned short CRC16(unsigned char *puchMsg, unsigned short usDataLen);
 bool Receive_byte_to_byte(unsigned char *mbus_frame_buffer, unsigned char (*receive_uart_funt)());
 
