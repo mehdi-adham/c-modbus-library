@@ -101,16 +101,17 @@ bool Receive_byte_to_byte(unsigned char *mbus_frame_buffer, unsigned char (*rece
     unsigned short calculate_crc;
     unsigned char rec_byte;
 
+    /* 1. **********************************************************/
     /* Get First field (Address Field)*/
     rec_byte = (*receive_uart_fun)();
+
+    /* if out of range allowed address  */
+    if (rec_byte > MAX_SLAVE_ADDRESS)
+        return false;
 
     /* if Address field not match with slave ID return false */
     if (rec_byte != SLAVE_ADDRESS)
         return false;
-#ifdef DEBUG
-    else
-        printf("\nrec_byte == SLAVE_ADDRESS\n");
-#endif
 
     /* Be assigned to the buffer value */
     *mbus_frame_buffer++ = rec_byte;
@@ -120,9 +121,211 @@ bool Receive_byte_to_byte(unsigned char *mbus_frame_buffer, unsigned char (*rece
     uchCRCHi = uchCRCLo ^ auchCRCHi[uIndex];
     uchCRCLo = auchCRCLo[uIndex];
 
-    /* Extracting frame length from frame data */
-    int len = 8 - 1;
+    /* 2. **********************************************************/
+    /* Get second field (Function Field)*/
+    /* check for Byte timeout 1.5C. if timeout 1.5C return false */
+    // timeout_1.5C;
+    unsigned char fun = rec_byte = (*receive_uart_fun)();
+    /* if(timeout_1.5C)
+        return false; */
+    /* Be assigned to the buffer value */
+    *mbus_frame_buffer++ = rec_byte;
+    /* Calculate the CRC of this field */
+    uIndex = uchCRCHi ^ rec_byte;
+    uchCRCHi = uchCRCLo ^ auchCRCHi[uIndex];
+    uchCRCLo = auchCRCLo[uIndex];
 
+    /* 3. **********************************************************/
+    /* Extracting frame length from frame data */
+    int len = 0;
+    /* Calculate len (byte count) for 1,2,3,4 function */
+    if (fun == 1 || fun == 2 || fun == 3 || fun == 4)
+    {
+        /* 3 */
+        rec_byte = (*receive_uart_fun)();
+        *mbus_frame_buffer++ = rec_byte;
+        /* Calculate the CRC of this field */
+        uIndex = uchCRCHi ^ rec_byte;
+        uchCRCHi = uchCRCLo ^ auchCRCHi[uIndex];
+        uchCRCLo = auchCRCLo[uIndex];
+
+        /* 4 */
+        rec_byte = (*receive_uart_fun)();
+        *mbus_frame_buffer++ = rec_byte;
+        /* Calculate the CRC of this field */
+        uIndex = uchCRCHi ^ rec_byte;
+        uchCRCHi = uchCRCLo ^ auchCRCHi[uIndex];
+        uchCRCLo = auchCRCLo[uIndex];
+
+        /* 5 */
+        rec_byte = (*receive_uart_fun)();
+        *mbus_frame_buffer++ = rec_byte;
+        unsigned char Hi = rec_byte;
+        /* Calculate the CRC of this field */
+        uIndex = uchCRCHi ^ rec_byte;
+        uchCRCHi = uchCRCLo ^ auchCRCHi[uIndex];
+        uchCRCLo = auchCRCLo[uIndex];
+
+        /* 6 */
+        rec_byte = (*receive_uart_fun)();
+        *mbus_frame_buffer++ = rec_byte;
+        unsigned char Lo = rec_byte;
+        /* Calculate the CRC of this field */
+        uIndex = uchCRCHi ^ rec_byte;
+        uchCRCHi = uchCRCLo ^ auchCRCHi[uIndex];
+        uchCRCLo = auchCRCLo[uIndex];
+
+        if (fun == 1 || fun == 2)
+        {
+            len = (Hi << 8 | Lo) / 8;
+        }
+        else
+        {
+            len = (Hi << 8 | Lo) * 2;
+        }
+    }
+    else if (fun == 5 || fun == 6)
+    {
+        len = 3;
+    }
+    else if (fun == 7 || fun == 11 || fun == 12 || fun == 17)
+    {
+        len = 0;
+    }
+    else if (fun == 15 || fun == 16)
+    {
+        /* 3 */
+        rec_byte = (*receive_uart_fun)();
+        *mbus_frame_buffer++ = rec_byte;
+        /* Calculate the CRC of this field */
+        uIndex = uchCRCHi ^ rec_byte;
+        uchCRCHi = uchCRCLo ^ auchCRCHi[uIndex];
+        uchCRCLo = auchCRCLo[uIndex];
+
+        /* 4 */
+        rec_byte = (*receive_uart_fun)();
+        *mbus_frame_buffer++ = rec_byte;
+        /* Calculate the CRC of this field */
+        uIndex = uchCRCHi ^ rec_byte;
+        uchCRCHi = uchCRCLo ^ auchCRCHi[uIndex];
+        uchCRCLo = auchCRCLo[uIndex];
+
+        /* 5 */
+        rec_byte = (*receive_uart_fun)();
+        *mbus_frame_buffer++ = rec_byte;
+        /* Calculate the CRC of this field */
+        uIndex = uchCRCHi ^ rec_byte;
+        uchCRCHi = uchCRCLo ^ auchCRCHi[uIndex];
+        uchCRCLo = auchCRCLo[uIndex];
+
+        /* 6 */
+        rec_byte = (*receive_uart_fun)();
+        *mbus_frame_buffer++ = rec_byte;
+        /* Calculate the CRC of this field */
+        uIndex = uchCRCHi ^ rec_byte;
+        uchCRCHi = uchCRCLo ^ auchCRCHi[uIndex];
+        uchCRCLo = auchCRCLo[uIndex];
+
+        /* 7 */
+        rec_byte = (*receive_uart_fun)();
+        *mbus_frame_buffer++ = rec_byte;
+        /* Calculate the CRC of this field */
+        uIndex = uchCRCHi ^ rec_byte;
+        uchCRCHi = uchCRCLo ^ auchCRCHi[uIndex];
+        uchCRCLo = auchCRCLo[uIndex];
+
+        len = rec_byte;
+    }
+    else if (fun == 20 || fun == 21)
+    {
+        /* 3 */
+        rec_byte = (*receive_uart_fun)();
+        *mbus_frame_buffer++ = rec_byte;
+        /* Calculate the CRC of this field */
+        uIndex = uchCRCHi ^ rec_byte;
+        uchCRCHi = uchCRCLo ^ auchCRCHi[uIndex];
+        uchCRCLo = auchCRCLo[uIndex];
+
+        len = rec_byte;
+    }
+    else if (fun == 22)
+    {
+        len = 6;
+    }
+    else if (fun == 23)
+    {
+        /* 3 */
+        rec_byte = (*receive_uart_fun)();
+        *mbus_frame_buffer++ = rec_byte;
+        /* Calculate the CRC of this field */
+        uIndex = uchCRCHi ^ rec_byte;
+        uchCRCHi = uchCRCLo ^ auchCRCHi[uIndex];
+        uchCRCLo = auchCRCLo[uIndex];
+
+        /* 4 */
+        rec_byte = (*receive_uart_fun)();
+        *mbus_frame_buffer++ = rec_byte;
+        /* Calculate the CRC of this field */
+        uIndex = uchCRCHi ^ rec_byte;
+        uchCRCHi = uchCRCLo ^ auchCRCHi[uIndex];
+        uchCRCLo = auchCRCLo[uIndex];
+
+        /* 5 */
+        rec_byte = (*receive_uart_fun)();
+        *mbus_frame_buffer++ = rec_byte;
+        /* Calculate the CRC of this field */
+        uIndex = uchCRCHi ^ rec_byte;
+        uchCRCHi = uchCRCLo ^ auchCRCHi[uIndex];
+        uchCRCLo = auchCRCLo[uIndex];
+
+        /* 6 */
+        rec_byte = (*receive_uart_fun)();
+        *mbus_frame_buffer++ = rec_byte;
+        /* Calculate the CRC of this field */
+        uIndex = uchCRCHi ^ rec_byte;
+        uchCRCHi = uchCRCLo ^ auchCRCHi[uIndex];
+        uchCRCLo = auchCRCLo[uIndex];
+
+        /* 7 */
+        rec_byte = (*receive_uart_fun)();
+        *mbus_frame_buffer++ = rec_byte;
+        /* Calculate the CRC of this field */
+        uIndex = uchCRCHi ^ rec_byte;
+        uchCRCHi = uchCRCLo ^ auchCRCHi[uIndex];
+        uchCRCLo = auchCRCLo[uIndex];
+
+        /* 8 */
+        rec_byte = (*receive_uart_fun)();
+        *mbus_frame_buffer++ = rec_byte;
+        /* Calculate the CRC of this field */
+        uIndex = uchCRCHi ^ rec_byte;
+        uchCRCHi = uchCRCLo ^ auchCRCHi[uIndex];
+        uchCRCLo = auchCRCLo[uIndex];
+
+        /* 9 */
+        rec_byte = (*receive_uart_fun)();
+        *mbus_frame_buffer++ = rec_byte;
+        /* Calculate the CRC of this field */
+        uIndex = uchCRCHi ^ rec_byte;
+        uchCRCHi = uchCRCLo ^ auchCRCHi[uIndex];
+        uchCRCLo = auchCRCLo[uIndex];
+
+        /* 10 */
+        rec_byte = (*receive_uart_fun)();
+        *mbus_frame_buffer++ = rec_byte;
+        /* Calculate the CRC of this field */
+        uIndex = uchCRCHi ^ rec_byte;
+        uchCRCHi = uchCRCLo ^ auchCRCHi[uIndex];
+        uchCRCLo = auchCRCLo[uIndex];
+
+        len = rec_byte;
+    }
+    else if (fun == 24)
+    {
+        len = 2;
+    }
+
+    /* 4. **********************************************************/
     while (len)
     {
         /* check for Byte timeout 1.5C. if timeout 1.5C return false */
@@ -133,26 +336,32 @@ bool Receive_byte_to_byte(unsigned char *mbus_frame_buffer, unsigned char (*rece
 
         /* Be assigned to the buffer value */
         *mbus_frame_buffer++ = rec_byte;
-
-        if (len > 2)
-        {
-            /* Calculate the CRC of this field */
-            uIndex = uchCRCHi ^ rec_byte;
-            uchCRCHi = uchCRCLo ^ auchCRCHi[uIndex];
-            uchCRCLo = auchCRCLo[uIndex];
-        }
-        len--;
     }
+
+    /* 5. **********************************************************/
+    rec_byte = (*receive_uart_fun)();
+    /* Be assigned to the buffer value */
+    *mbus_frame_buffer++ = rec_byte;
+    /* Calculate the CRC of this field */
+    uIndex = uchCRCHi ^ rec_byte;
+    uchCRCHi = uchCRCLo ^ auchCRCHi[uIndex];
+    uchCRCLo = auchCRCLo[uIndex];
+
+    rec_byte = (*receive_uart_fun)();
+    /* Be assigned to the buffer value */
+    *mbus_frame_buffer++ = rec_byte;
+    /* Calculate the CRC of this field */
+    uIndex = uchCRCHi ^ rec_byte;
+    uchCRCHi = uchCRCLo ^ auchCRCHi[uIndex];
+    uchCRCLo = auchCRCLo[uIndex];
+
     /* The calculated CRC is assigned in the value of calcul_crc */
     calculate_crc = (uchCRCHi << 8 | uchCRCLo);
 
-    /* Check crc calculated, that is equal with CRC frame */
+    /* Check CRC calculated, that is equal with CRC frame */
     if (calculate_crc != (unsigned short)((*(mbus_frame_buffer - 2) << 8) | *(mbus_frame_buffer - 1)))
         return false;
-#ifdef DEBUG
-    else
-        printf("\ncalculate_crc == frame crc\n");
-#endif
+
     return true;
 }
 
@@ -160,7 +369,6 @@ void MODBUS_RTU_MONITOR(unsigned char (*receive_uart_fun)())
 {
     unsigned char fram_buf[MAX_BUFFER];
     /* Wait while be silent bus for least 3.5 character. */
-    
 
     /* Receive byte to byte from serial.
      * if address field not match with slave ID return false
