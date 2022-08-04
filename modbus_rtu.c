@@ -11,7 +11,6 @@
 
 #include "modbus_rtu.h"
 #include <stdint.h>
-#include <stdbool.h>
 
 /**
  * @brief Table of CRC values for high–order byte
@@ -124,10 +123,8 @@ bool Receive_byte_to_byte(unsigned char *mbus_frame_buffer, unsigned char (*rece
     /* 2. **********************************************************/
     /* Get second field (Function Field)*/
     /* check for Byte timeout 1.5C. if timeout 1.5C return false */
-    // timeout_1.5C;
     unsigned char fun = rec_byte = (*receive_uart_fun)();
-    /* if(timeout_1.5C)
-        return false; */
+
     /* Be assigned to the buffer value */
     *mbus_frame_buffer++ = rec_byte;
     /* Calculate the CRC of this field */
@@ -136,53 +133,12 @@ bool Receive_byte_to_byte(unsigned char *mbus_frame_buffer, unsigned char (*rece
     uchCRCLo = auchCRCLo[uIndex];
 
     /* 3. **********************************************************/
-    /* Extracting frame length from frame data */
+    /* Extracting frame length (register or coil ...) from frame data */
     int len = 0;
     /* Calculate len (byte count) for 1,2,3,4 function */
     if (fun == 1 || fun == 2 || fun == 3 || fun == 4)
     {
-        /* 3 */
-        rec_byte = (*receive_uart_fun)();
-        *mbus_frame_buffer++ = rec_byte;
-        /* Calculate the CRC of this field */
-        uIndex = uchCRCHi ^ rec_byte;
-        uchCRCHi = uchCRCLo ^ auchCRCHi[uIndex];
-        uchCRCLo = auchCRCLo[uIndex];
-
-        /* 4 */
-        rec_byte = (*receive_uart_fun)();
-        *mbus_frame_buffer++ = rec_byte;
-        /* Calculate the CRC of this field */
-        uIndex = uchCRCHi ^ rec_byte;
-        uchCRCHi = uchCRCLo ^ auchCRCHi[uIndex];
-        uchCRCLo = auchCRCLo[uIndex];
-
-        /* 5 */
-        rec_byte = (*receive_uart_fun)();
-        *mbus_frame_buffer++ = rec_byte;
-        unsigned char Hi = rec_byte;
-        /* Calculate the CRC of this field */
-        uIndex = uchCRCHi ^ rec_byte;
-        uchCRCHi = uchCRCLo ^ auchCRCHi[uIndex];
-        uchCRCLo = auchCRCLo[uIndex];
-
-        /* 6 */
-        rec_byte = (*receive_uart_fun)();
-        *mbus_frame_buffer++ = rec_byte;
-        unsigned char Lo = rec_byte;
-        /* Calculate the CRC of this field */
-        uIndex = uchCRCHi ^ rec_byte;
-        uchCRCHi = uchCRCLo ^ auchCRCHi[uIndex];
-        uchCRCLo = auchCRCLo[uIndex];
-
-        if (fun == 1 || fun == 2)
-        {
-            len = (Hi << 8 | Lo) / 8;
-        }
-        else
-        {
-            len = (Hi << 8 | Lo) * 2;
-        }
+        len = 4;
     }
     else if (fun == 5 || fun == 6)
     {
@@ -325,6 +281,9 @@ bool Receive_byte_to_byte(unsigned char *mbus_frame_buffer, unsigned char (*rece
         len = 2;
     }
 
+#ifdef DEBUG
+    printf("\nlen [%d]\n", len);
+#endif
     /* 4. **********************************************************/
     while (len)
     {
@@ -336,6 +295,8 @@ bool Receive_byte_to_byte(unsigned char *mbus_frame_buffer, unsigned char (*rece
 
         /* Be assigned to the buffer value */
         *mbus_frame_buffer++ = rec_byte;
+
+        len--;
     }
 
     /* 5. **********************************************************/

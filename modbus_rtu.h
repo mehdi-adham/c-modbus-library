@@ -17,12 +17,14 @@ extern "C"
 {
 #endif
 
-#define SLAVE_ADDRESS               3
-#define MAX_BUFFER                  256
-#define MAX_SLAVE_ADDRESS           247
+#include <stdbool.h>
 
-    unsigned short CRC16(unsigned char *puchMsg, unsigned short usDataLen);
-    bool Receive_byte_to_byte(unsigned char *mbus_frame_buffer, unsigned char (*receive_uart_funt)());
+#define SLAVE_ADDRESS       0x11
+#define MAX_BUFFER          256
+#define MAX_SLAVE_ADDRESS   247
+
+unsigned short CRC16(unsigned char *puchMsg, unsigned short usDataLen);
+bool Receive_byte_to_byte(unsigned char *mbus_frame_buffer, unsigned char (*receive_uart_funt)());
 
 #ifdef __cplusplus
 }
