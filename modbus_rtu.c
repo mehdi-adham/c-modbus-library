@@ -88,10 +88,10 @@ unsigned short CRC16(unsigned char *puchMsg, unsigned short usDataLen)
 /**
  * @brief
  * @note Template Frame For Test:
- * {0x11, 0x01, 0x00, 0x13, 0x00, 0x25, 0x0E, 0xA6}
+ * {0x11, 0x01, 0x00, 0x13, 0x00, 0x25, 0x0E, 0x84}
  * {0x11, 0x02, 0x00, 0xC4, 0x00, 0x16, 0xBA, 0xA9}
  * {0x11, 0x03, 0x00, 0x6B, 0x00, 0x03 ,0x76 ,0x87}
- * {0x11, 0x04, 0x00, 0x08, 0x00, 0x01 ,0x07 ,0x58}
+ * {0x11, 0x04, 0x00, 0x08, 0x00, 0x01 ,0xB2 ,0x98}
  * {0x11, 0x05, 0x00, 0xAC, 0xFF, 0x00 ,0x4E ,0x8B}
  * {0x11, 0x06, 0x00, 0x01, 0x00, 0x03 ,0x9A ,0x9B}
  * {0x11, 0x07, 0x4C, 0x22}
@@ -149,7 +149,7 @@ void MODBUS_RTU_MONITOR(unsigned char *mbus_frame_buffer, int monitor_fun_timeou
 #endif
     /* 3. if out of range allowed address */
     /* if Address field not match with slave ID */
-    if (rec_byte > MAX_SLAVE_ADDRESS && rec_byte != SLAVE_ADDRESS)
+    if (rec_byte > MAX_SLAVE_ADDRESS || rec_byte != SLAVE_ADDRESS)
         return;
     /*  continue;
   else
@@ -191,7 +191,7 @@ void MODBUS_RTU_MONITOR(unsigned char *mbus_frame_buffer, int monitor_fun_timeou
     else if (fun == Force_Multiple_Coils || fun == Preset_Multiple_Registers)
     {
         int l = 5;
-        while (l)
+        while (l--)
         {
             rec_byte = (*receive_uart_fun)();
             *mbus_frame_buffer++ = rec_byte;
@@ -199,8 +199,6 @@ void MODBUS_RTU_MONITOR(unsigned char *mbus_frame_buffer, int monitor_fun_timeou
             uIndex = uchCRCHi ^ rec_byte;
             uchCRCHi = uchCRCLo ^ auchCRCHi[uIndex];
             uchCRCLo = auchCRCLo[uIndex];
-
-            l--;
         }
 
         len = rec_byte;
@@ -223,7 +221,7 @@ void MODBUS_RTU_MONITOR(unsigned char *mbus_frame_buffer, int monitor_fun_timeou
     else if (fun == Read_Write_4X_Registers)
     {
         int l = 9;
-        while (l)
+        while (l--)
         {
             rec_byte = (*receive_uart_fun)();
             *mbus_frame_buffer++ = rec_byte;
@@ -231,8 +229,6 @@ void MODBUS_RTU_MONITOR(unsigned char *mbus_frame_buffer, int monitor_fun_timeou
             uIndex = uchCRCHi ^ rec_byte;
             uchCRCHi = uchCRCLo ^ auchCRCHi[uIndex];
             uchCRCLo = auchCRCLo[uIndex];
-
-            l--;
         }
 
         len = rec_byte;
