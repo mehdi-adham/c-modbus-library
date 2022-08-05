@@ -87,7 +87,6 @@ unsigned short CRC16(unsigned char *puchMsg, unsigned short usDataLen)
 
 /**
  * @brief
- *
  * @note Template Frame For Test:
  * {0x11, 0x01, 0x00, 0x13, 0x00, 0x25, 0x0E, 0xA6}
  * {0x11, 0x02, 0x00, 0xC4, 0x00, 0x16, 0xBA, 0xA9}
@@ -107,10 +106,11 @@ unsigned short CRC16(unsigned char *puchMsg, unsigned short usDataLen)
  * {0x11, 0x17, 0x00, 0x04, 0x00, 0x06 ,0x00 ,0x0F, 0x00, 0x03, 0x06, 0x00, 0xFF, 0x00, 0xFF, 0x00, 0xFF, 0x1C, 0x56}
  * {0x11, 0x18, 0x04, 0xDE, 0x07, 0x87}
  * @param mbus_frame_buffer
+ * @param monitor_fun_timeout
  * @param receive_uart_fun
- * @return true or false
  */
-bool Receive_byte_to_byte(unsigned char *mbus_frame_buffer, unsigned char (*receive_uart_fun)())
+void MODBUS_RTU_MONITOR(unsigned char *mbus_frame_buffer, int monitor_fun_timeout,
+                        unsigned char (*receive_uart_fun)())
 {
     static unsigned char uchCRCHi = 0xFF; /* high byte of CRC initialized */
     static unsigned char uchCRCLo = 0xFF; /* low byte of CRC initialized */
@@ -118,34 +118,55 @@ bool Receive_byte_to_byte(unsigned char *mbus_frame_buffer, unsigned char (*rece
     unsigned short calculate_crc;
     unsigned char rec_byte;
 
-    /* 1. **********************************************************/
-    /* Get First field (Address Field)*/
+    long long int curr_for_monitor_timeout;
+    long long int now_for_monitor_timeout;
+    long long int curr;
+    long long int now;
+
+    /*curr_for_monitor_timeout = SysTick;
+    while (1)
+    {*/
+    /* 0. Check for monitor function timeout */
+    /* now_for_monitor_timeout = SysTick;
+     if (now_for_monitor_timeout - curr_for_monitor_timeout > monitor_fun_timeout)
+         return;
+
+     curr = SysTick;*/
+    /* 1. wait for frame timeout */
+    /*whlie(1)
+    {
+        if (RX_PIN == 1)
+            curr = SysTick;
+        now = SysTick;
+        if (now – curr > frame_timeout)
+            break;
+    }*/
+
+    /* 2. Ready for receive of first Byte (Address Field) */
     rec_byte = (*receive_uart_fun)();
+#ifdef DEBUG
+    printf("id [%d]\n", rec_byte);
+#endif
+    /* 3. if out of range allowed address */
+    /* if Address field not match with slave ID */
+    if (rec_byte > MAX_SLAVE_ADDRESS && rec_byte != SLAVE_ADDRESS)
+        return;
+    /*  continue;
+  else
+      break;*/
+    /*}*/
 
-    /* if out of range allowed address  */
-    if (rec_byte > MAX_SLAVE_ADDRESS)
-        return false;
-
-    /* if Address field not match with slave ID return false */
-    if (rec_byte != SLAVE_ADDRESS)
-        return false;
-
-    /* Be assigned to the buffer value */
+    /* 4. Be assigned to the buffer and Calculate the CRC of this field */
     *mbus_frame_buffer++ = rec_byte;
-
-    /* Calculate the CRC of this field */
     uIndex = uchCRCHi ^ rec_byte;
     uchCRCHi = uchCRCLo ^ auchCRCHi[uIndex];
     uchCRCLo = auchCRCLo[uIndex];
 
-    /* 2. **********************************************************/
-    /* Get second field (Function Field)*/
-    /* check for Byte timeout 1.5C. if timeout 1.5C return false */
-    unsigned char fun = rec_byte = (*receive_uart_fun)();
+    /* 5. Get second field (Function Field) */
+    rec_byte = (*receive_uart_fun)();
 
-    /* Be assigned to the buffer value */
-    *mbus_frame_buffer++ = rec_byte;
-    /* Calculate the CRC of this field */
+    /* 6. Be assigned to the fun/buffer and Calculate the CRC of this field */
+    unsigned char fun = *mbus_frame_buffer++ = rec_byte;
     uIndex = uchCRCHi ^ rec_byte;
     uchCRCHi = uchCRCLo ^ auchCRCHi[uIndex];
     uchCRCLo = auchCRCLo[uIndex];
@@ -154,64 +175,38 @@ bool Receive_byte_to_byte(unsigned char *mbus_frame_buffer, unsigned char (*rece
     printf("fun [%d]\n", fun);
 #endif
 
-    /* 3. **********************************************************/
-    /* Extracting frame length (register or coil ...) from frame data */
+    /* 7. */
+    /* Extracting length (register or coil ...) from frame data */
     int len = 0;
-    if (fun == Read_Coil_Status || fun == Read_Input_Status || fun == Read_Holding_Registers || fun == Read_Input_Registers || fun == Force_Single_Coil || fun == Preset_Single_Register)
+    if (fun == Read_Coil_Status || fun == Read_Input_Status || fun == Read_Holding_Registers ||
+        fun == Read_Input_Registers || fun == Force_Single_Coil || fun == Preset_Single_Register)
     {
         len = 4;
     }
-    else if (fun == Read_Exception_Status || fun == Fetch_Comm_Event_Counter || fun == Fetch_Comm_Event_Log || fun == Report_Slave_ID)
+    else if (fun == Read_Exception_Status || fun == Fetch_Comm_Event_Counter ||
+             fun == Fetch_Comm_Event_Log || fun == Report_Slave_ID)
     {
         len = 0;
     }
     else if (fun == Force_Multiple_Coils || fun == Preset_Multiple_Registers)
     {
-        /* 3 */
-        rec_byte = (*receive_uart_fun)();
-        *mbus_frame_buffer++ = rec_byte;
-        /* Calculate the CRC of this field */
-        uIndex = uchCRCHi ^ rec_byte;
-        uchCRCHi = uchCRCLo ^ auchCRCHi[uIndex];
-        uchCRCLo = auchCRCLo[uIndex];
+        int l = 5;
+        while (l)
+        {
+            rec_byte = (*receive_uart_fun)();
+            *mbus_frame_buffer++ = rec_byte;
+            /* Calculate the CRC of this field */
+            uIndex = uchCRCHi ^ rec_byte;
+            uchCRCHi = uchCRCLo ^ auchCRCHi[uIndex];
+            uchCRCLo = auchCRCLo[uIndex];
 
-        /* 4 */
-        rec_byte = (*receive_uart_fun)();
-        *mbus_frame_buffer++ = rec_byte;
-        /* Calculate the CRC of this field */
-        uIndex = uchCRCHi ^ rec_byte;
-        uchCRCHi = uchCRCLo ^ auchCRCHi[uIndex];
-        uchCRCLo = auchCRCLo[uIndex];
-
-        /* 5 */
-        rec_byte = (*receive_uart_fun)();
-        *mbus_frame_buffer++ = rec_byte;
-        /* Calculate the CRC of this field */
-        uIndex = uchCRCHi ^ rec_byte;
-        uchCRCHi = uchCRCLo ^ auchCRCHi[uIndex];
-        uchCRCLo = auchCRCLo[uIndex];
-
-        /* 6 */
-        rec_byte = (*receive_uart_fun)();
-        *mbus_frame_buffer++ = rec_byte;
-        /* Calculate the CRC of this field */
-        uIndex = uchCRCHi ^ rec_byte;
-        uchCRCHi = uchCRCLo ^ auchCRCHi[uIndex];
-        uchCRCLo = auchCRCLo[uIndex];
-
-        /* 7 */
-        rec_byte = (*receive_uart_fun)();
-        *mbus_frame_buffer++ = rec_byte;
-        /* Calculate the CRC of this field */
-        uIndex = uchCRCHi ^ rec_byte;
-        uchCRCHi = uchCRCLo ^ auchCRCHi[uIndex];
-        uchCRCLo = auchCRCLo[uIndex];
+            l--;
+        }
 
         len = rec_byte;
     }
     else if (fun == Read_General_Reference || fun == Write_General_Reference)
     {
-        /* 3 */
         rec_byte = (*receive_uart_fun)();
         *mbus_frame_buffer++ = rec_byte;
         /* Calculate the CRC of this field */
@@ -227,77 +222,18 @@ bool Receive_byte_to_byte(unsigned char *mbus_frame_buffer, unsigned char (*rece
     }
     else if (fun == Read_Write_4X_Registers)
     {
-        /* 3 */
-        rec_byte = (*receive_uart_fun)();
-        *mbus_frame_buffer++ = rec_byte;
-        /* Calculate the CRC of this field */
-        uIndex = uchCRCHi ^ rec_byte;
-        uchCRCHi = uchCRCLo ^ auchCRCHi[uIndex];
-        uchCRCLo = auchCRCLo[uIndex];
+        int l = 9;
+        while (l)
+        {
+            rec_byte = (*receive_uart_fun)();
+            *mbus_frame_buffer++ = rec_byte;
+            /* Calculate the CRC of this field */
+            uIndex = uchCRCHi ^ rec_byte;
+            uchCRCHi = uchCRCLo ^ auchCRCHi[uIndex];
+            uchCRCLo = auchCRCLo[uIndex];
 
-        /* 4 */
-        rec_byte = (*receive_uart_fun)();
-        *mbus_frame_buffer++ = rec_byte;
-        /* Calculate the CRC of this field */
-        uIndex = uchCRCHi ^ rec_byte;
-        uchCRCHi = uchCRCLo ^ auchCRCHi[uIndex];
-        uchCRCLo = auchCRCLo[uIndex];
-
-        /* 5 */
-        rec_byte = (*receive_uart_fun)();
-        *mbus_frame_buffer++ = rec_byte;
-        /* Calculate the CRC of this field */
-        uIndex = uchCRCHi ^ rec_byte;
-        uchCRCHi = uchCRCLo ^ auchCRCHi[uIndex];
-        uchCRCLo = auchCRCLo[uIndex];
-
-        /* 6 */
-        rec_byte = (*receive_uart_fun)();
-        *mbus_frame_buffer++ = rec_byte;
-        /* Calculate the CRC of this field */
-        uIndex = uchCRCHi ^ rec_byte;
-        uchCRCHi = uchCRCLo ^ auchCRCHi[uIndex];
-        uchCRCLo = auchCRCLo[uIndex];
-
-        /* 7 */
-        rec_byte = (*receive_uart_fun)();
-        *mbus_frame_buffer++ = rec_byte;
-        /* Calculate the CRC of this field */
-        uIndex = uchCRCHi ^ rec_byte;
-        uchCRCHi = uchCRCLo ^ auchCRCHi[uIndex];
-        uchCRCLo = auchCRCLo[uIndex];
-
-        /* 8 */
-        rec_byte = (*receive_uart_fun)();
-        *mbus_frame_buffer++ = rec_byte;
-        /* Calculate the CRC of this field */
-        uIndex = uchCRCHi ^ rec_byte;
-        uchCRCHi = uchCRCLo ^ auchCRCHi[uIndex];
-        uchCRCLo = auchCRCLo[uIndex];
-
-        /* 9 */
-        rec_byte = (*receive_uart_fun)();
-        *mbus_frame_buffer++ = rec_byte;
-        /* Calculate the CRC of this field */
-        uIndex = uchCRCHi ^ rec_byte;
-        uchCRCHi = uchCRCLo ^ auchCRCHi[uIndex];
-        uchCRCLo = auchCRCLo[uIndex];
-
-        /* 10 */
-        rec_byte = (*receive_uart_fun)();
-        *mbus_frame_buffer++ = rec_byte;
-        /* Calculate the CRC of this field */
-        uIndex = uchCRCHi ^ rec_byte;
-        uchCRCHi = uchCRCLo ^ auchCRCHi[uIndex];
-        uchCRCLo = auchCRCLo[uIndex];
-
-        /* 11 */
-        rec_byte = (*receive_uart_fun)();
-        *mbus_frame_buffer++ = rec_byte;
-        /* Calculate the CRC of this field */
-        uIndex = uchCRCHi ^ rec_byte;
-        uchCRCHi = uchCRCLo ^ auchCRCHi[uIndex];
-        uchCRCLo = auchCRCLo[uIndex];
+            l--;
+        }
 
         len = rec_byte;
     }
@@ -310,63 +246,41 @@ bool Receive_byte_to_byte(unsigned char *mbus_frame_buffer, unsigned char (*rece
     printf("len [%d]\n", len);
 #endif
 
-    /* 4. **********************************************************/
+    /* 8. Remain byte*/
     while (len)
     {
-        /* check for Byte timeout 1.5C. if timeout 1.5C return false */
+        /* 8.1 */
         rec_byte = (*receive_uart_fun)();
 
-        /* Be assigned to the buffer value */
+        /* 8.2 */
         *mbus_frame_buffer++ = rec_byte;
-
         /* Calculate the CRC of this field */
         uIndex = uchCRCHi ^ rec_byte;
         uchCRCHi = uchCRCLo ^ auchCRCHi[uIndex];
         uchCRCLo = auchCRCLo[uIndex];
 
+        /* 8.3 */
         len--;
     }
 
-    /* 5. **********************************************************/
+    /* 9. CRC */
     rec_byte = (*receive_uart_fun)();
-    /* Be assigned to the buffer value */
     *mbus_frame_buffer++ = rec_byte;
 
     rec_byte = (*receive_uart_fun)();
-    /* Be assigned to the buffer value */
     *mbus_frame_buffer++ = rec_byte;
 
-    /* The calculated CRC is assigned in the value of calcul_crc */
+    /* 10. Check CRC calculated, that is equal with CRC frame */
+    /* The calculated CRC is assigned in the value of calculate_crc */
     calculate_crc = (uchCRCHi << 8 | uchCRCLo);
     unsigned short frameCRC = (unsigned short)((*(mbus_frame_buffer - 2) << 8) | *(mbus_frame_buffer - 1));
 
-#ifdef DEBUG
-    printf("CRC Check  [0x%04X][0x%04X]\n", calculate_crc, frameCRC);
-#endif
-
     /* Check CRC calculated, that is equal with CRC frame */
     if (calculate_crc != frameCRC)
-        return false;
-
-    return true;
-}
-
-void MODBUS_RTU_MONITOR(unsigned char (*receive_uart_fun)())
-{
-    unsigned char fram_buf[MAX_BUFFER];
-    /* Wait while be silent bus for least 3.5 character. */
-
-    /* Receive byte to byte from serial.
-     * if address field not match with slave ID return false
-     * if timeout 1.5C return false
-     */
-    bool ResultOfreceive = Receive_byte_to_byte(fram_buf, receive_uart_fun);
-    if (ResultOfreceive != true)
     {
-        MODBUS_MONITOR();
+        /* clear buffer */
+
+        // MODBUS_RTU_MONITOR();
     }
-    else
-    {
-        MODBUS_FARME_PROCESS(fram_buf);
-    }
+    // MODBUS_FARME_PROCESS();
 }

@@ -43,9 +43,15 @@ enum Modbus_Function_Name{
     Read_FIFO_Queue =24
 };
 
-unsigned short CRC16(unsigned char *puchMsg, unsigned short usDataLen);
-bool Receive_byte_to_byte(unsigned char *mbus_frame_buffer, unsigned char (*receive_uart_funt)());
+int request_timeout = 500;
+int request_timer = 0; 
+int RX_PIN ;
+int DIR_PIN;
+long long int *timer;
 
+unsigned short CRC16(unsigned char *puchMsg, unsigned short usDataLen);
+void MODBUS_RTU_MONITOR(unsigned char *mbus_frame_buffer, int monitor_fun_timeout,
+                        unsigned char (*receive_uart_fun)());
 #ifdef __cplusplus
 }
 #endif
