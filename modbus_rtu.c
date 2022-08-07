@@ -9,6 +9,7 @@
  *
  */
 
+#include "modbus.h"
 #include "modbus_rtu.h"
 #include <stdint.h>
 
@@ -118,10 +119,10 @@ void MODBUS_RTU_MONITOR(unsigned char *mbus_frame_buffer, int monitor_fun_timeou
     unsigned short calculate_crc;
     unsigned char rec_byte;
 
-    long long int curr_for_monitor_timeout;
+    /*long long int curr_for_monitor_timeout;
     long long int now_for_monitor_timeout;
     long long int curr;
-    long long int now;
+    long long int now;*/
 
     /*curr_for_monitor_timeout = SysTick;
     while (1)
@@ -150,7 +151,8 @@ void MODBUS_RTU_MONITOR(unsigned char *mbus_frame_buffer, int monitor_fun_timeou
     /* 3. if out of range allowed address */
     /* if Address field not match with slave ID */
     if (rec_byte > MAX_SLAVE_ADDRESS || rec_byte != SLAVE_ADDRESS)
-        return;
+        return false;
+    /* return to 0. */
     /*  continue;
   else
       break;*/
@@ -276,7 +278,10 @@ void MODBUS_RTU_MONITOR(unsigned char *mbus_frame_buffer, int monitor_fun_timeou
     {
         /* clear buffer */
 
+        /* return to 0. */
         // MODBUS_RTU_MONITOR();
     }
-    // MODBUS_FARME_PROCESS();
+
+    return true;
 }
+
