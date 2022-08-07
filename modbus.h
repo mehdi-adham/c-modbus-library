@@ -16,9 +16,15 @@
 extern "C" {
 #endif
 
-#define MAXIMUM_AMOUNT_OF_COIL      800
+/* 184/384:[800]   484:[512]     584/984/884:[2000]    M84:[64] */
+#define MAX_COIL      2000 
+#define MAX_INPUT      2000
+/* 184/384:[100]   484:[254]     584/984/884:[125]    M84:[64] */
+#define MAX_HOLDING_REGISTERS       254
 
-unsigned char COIL_MEM[MAXIMUM_AMOUNT_OF_COIL/8];
+unsigned char COIL_MEM[MAX_COIL/8];
+unsigned char INPUT_MEM[MAX_INPUT/8];
+uint16_t HOLDING_REGISTERS_MEM[MAX_HOLDING_REGISTERS];
 
 
 /* Modbus function codes. */
