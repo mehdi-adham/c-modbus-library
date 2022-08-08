@@ -10,13 +10,28 @@
  */
 #include "modbus.h"
 
-void MODBUS_FARME_PROCESS(unsigned char *RequestFrame, unsigned char *ResponseFrame)
+
+/* private function */
+static unsigned char SLAVE_Read_Coil_Status_Operation(unsigned char *RequestFrame,
+                                               unsigned char *Constructed_ResponseFrame);
+static unsigned char SLAVE_Read_Input_Status_Operation(unsigned char *RequestFrame,
+                                               unsigned char *Constructed_ResponseFrame);                                              
+static unsigned char SLAVE_Read_Holding_Registers_Operation(unsigned char *RequestFrame,
+                                               unsigned char *Constructed_ResponseFrame);
+
+
+unsigned char MODBUS_FARME_PROCESS(unsigned char *RequestFrame, unsigned char *ResponseFrame)
 {
     unsigned char function = RequestFrame[1];
-    if (function == Read_Coil_Status)
-    {
-        Read_Coil_Status_Operation(RequestFrame, ResponseFrame);
+    if (function == Read_Coil_Status){
+       return SLAVE_Read_Coil_Status_Operation(RequestFrame, ResponseFrame);
     }
+    else if(function == Read_Input_Status){
+       return SLAVE_Read_Input_Status_Operation(RequestFrame, ResponseFrame);
+    }
+    else 
+       return SLAVE_Read_Holding_Registers_Operation(RequestFrame, ResponseFrame);
+    
 }
 /**
  * @brief 

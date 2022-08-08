@@ -13,8 +13,8 @@
             "windowsSdkVersion": "8.1",
             "compilerPath": "C:\\Program Files (x86)\\Microsoft Visual Studio 14.0\\\\VC/bin/cl.exe",
             "cStandard": "c17",
-            "cppStandard": "c++17",
-            "intelliSenseMode": "macos-clang-x86"
+            "cppStandard": "c++23",
+            "intelliSenseMode": "${default}"
         }
     ],
     "version": 4

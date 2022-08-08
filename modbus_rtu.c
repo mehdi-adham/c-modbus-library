@@ -13,6 +13,12 @@
 #include "modbus_rtu.h"
 #include <stdint.h>
 
+int request_timeout = 500;
+int request_timer = 0; 
+int RX_PIN ;
+int DIR_PIN;
+long long int *timer;
+
 /**
  * @brief Table of CRC values for high–order byte
  *
@@ -110,7 +116,7 @@ unsigned short CRC16(unsigned char *puchMsg, unsigned short usDataLen)
  * @param monitor_fun_timeout
  * @param receive_uart_fun
  */
-void MODBUS_RTU_MONITOR(unsigned char *mbus_frame_buffer, int monitor_fun_timeout,
+bool MODBUS_RTU_MONITOR(unsigned char *mbus_frame_buffer, int monitor_fun_timeout,
                         unsigned char (*receive_uart_fun)())
 {
     static unsigned char uchCRCHi = 0xFF; /* high byte of CRC initialized */
@@ -145,7 +151,7 @@ void MODBUS_RTU_MONITOR(unsigned char *mbus_frame_buffer, int monitor_fun_timeou
 
     /* 2. Ready for receive of first Byte (Address Field) */
     rec_byte = (*receive_uart_fun)();
-#ifdef DEBUG
+#ifdef debug
     printf("id [%d]\n", rec_byte);
 #endif
     /* 3. if out of range allowed address */
@@ -173,7 +179,7 @@ void MODBUS_RTU_MONITOR(unsigned char *mbus_frame_buffer, int monitor_fun_timeou
     uchCRCHi = uchCRCLo ^ auchCRCHi[uIndex];
     uchCRCLo = auchCRCLo[uIndex];
 
-#ifdef DEBUG
+#ifdef debug
     printf("fun [%d]\n", fun);
 #endif
 
@@ -240,7 +246,7 @@ void MODBUS_RTU_MONITOR(unsigned char *mbus_frame_buffer, int monitor_fun_timeou
         len = 2;
     }
 
-#ifdef DEBUG
+#ifdef debug
     printf("len [%d]\n", len);
 #endif
 
@@ -279,7 +285,7 @@ void MODBUS_RTU_MONITOR(unsigned char *mbus_frame_buffer, int monitor_fun_timeou
         /* clear buffer */
 
         /* return to 0. */
-        // MODBUS_RTU_MONITOR();
+        // MODBUS_RTU_MONITOR(mbus_frame_buffer,  monitor_fun_timeout, (*receive_uart_fun)());
     }
 
     return true;
