@@ -24,8 +24,9 @@ extern "C"
 #define MAX_SLAVE_ADDRESS   247
 
 unsigned short CRC16(unsigned char *puchMsg, unsigned short usDataLen);
-bool MODBUS_RTU_MONITOR(unsigned char *mbus_frame_buffer, int monitor_fun_timeout,
-                        unsigned char (*receive_uart_fun)());
+ModbusStatus_t MODBUS_RTU_MONITOR(unsigned char *mbus_frame_buffer,
+		int monitor_fun_timeout, unsigned char (*receive_uart_fun)(),
+		volatile uint32_t *Tick, unsigned char (*Read_RX_PIN_fun)());
 #ifdef __cplusplus
 }
 #endif
