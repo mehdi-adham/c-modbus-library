@@ -15,6 +15,25 @@
 
 uint32_t frame_timeout = 500;
 
+/**
+ * @brief
+ * NOTE : This function should not be modified, when the callback is needed,
+ the HAL_MspDeInit could be implemented in the user file
+ * @return __weak
+ */
+__attribute__((weak))   ModbusStatus_t uart_receive(uint8_t *Data) {
+	return 0;
+}
+
+/**
+ * @brief
+ * @note NOTE : This function should not be modified, when the callback is needed,
+ the HAL_MspDeInit could be implemented in the user file
+ * @return __weak
+ */
+__attribute__((weak))    uint8_t read_rx_pin() {
+	return 0;
+}
 
 /**
  * @brief Table of CRC values for high–order byte
@@ -120,20 +139,23 @@ unsigned short CRC16(unsigned char *puchMsg, unsigned short usDataLen) {
  * @param receive_uart_fun
  */
 ModbusStatus_t MODBUS_RTU_MONITOR(unsigned char *mbus_frame_buffer,
-		int monitor_fun_timeout, unsigned char (*receive_uart_fun)(),
-		volatile uint32_t *Tick, unsigned char (*Read_RX_PIN_fun)()) {
+		int monitor_fun_timeout, volatile uint32_t *Tick) {
 	static unsigned char uchCRCHi = 0xFF; /* high byte of CRC initialized */
 	static unsigned char uchCRCLo = 0xFF; /* low byte of CRC initialized */
 	static unsigned char uIndex; /* will index into CRC lookup table */
 	unsigned short calculate_crc;
 	unsigned char rec_byte;
+	ModbusStatus_t res;
 
 	uint32_t tickstart_for_monitor_timeout;
 	uint32_t currenttick_for_monitor_timeout;
 	uint32_t tickstart_for_frame_timeout;
 	uint32_t currenttick_for_frame_timeout;
 
-	/* Init tickstart for timeout management */
+	unsigned char (*receive_uart_fun)() = uart_receive;
+	unsigned char (*Read_RX_PIN_fun)() = read_rx_pin;
+
+	/* Init tickstart for monitor timeout management */
 	tickstart_for_monitor_timeout = *Tick;
 	while (1) {
 		/* 0. Check for monitor function timeout */
@@ -142,19 +164,20 @@ ModbusStatus_t MODBUS_RTU_MONITOR(unsigned char *mbus_frame_buffer,
 				> monitor_fun_timeout)
 			return MODBUS_MONITOR_TIMEOUT;
 
+		/* 1. Init tickstart for frame timeout management */
 		tickstart_for_frame_timeout = *Tick;
-		/* 1. wait for frame timeout */
-		while(1)
-		{
+		while (1) {
 			if ((*Read_RX_PIN_fun)() == 0)
 				tickstart_for_frame_timeout = *Tick;
+
 			currenttick_for_frame_timeout = *Tick;
-			if (currenttick_for_frame_timeout - tickstart_for_frame_timeout > frame_timeout)
+			if (currenttick_for_frame_timeout - tickstart_for_frame_timeout
+					> frame_timeout)
 				break;
 		}
 
 		/* 2. Ready for receive of first Byte (Address Field) */
-		rec_byte = (*receive_uart_fun)();
+		res = (*receive_uart_fun)(&rec_byte);
 #ifdef debug
     printf("id [%d]\n", rec_byte);
 #endif
@@ -174,7 +197,7 @@ ModbusStatus_t MODBUS_RTU_MONITOR(unsigned char *mbus_frame_buffer,
 	uchCRCLo = auchCRCLo[uIndex];
 
 	/* 5. Get second field (Function Field) */
-	rec_byte = (*receive_uart_fun)();
+	res = (*receive_uart_fun)(&rec_byte);
 
 	/* 6. Be assigned to the fun/buffer and Calculate the CRC of this field */
 	unsigned char fun = *mbus_frame_buffer++ = rec_byte;
@@ -200,7 +223,7 @@ ModbusStatus_t MODBUS_RTU_MONITOR(unsigned char *mbus_frame_buffer,
 			|| fun == Preset_Multiple_Registers) {
 		int l = 5;
 		while (l--) {
-			rec_byte = (*receive_uart_fun)();
+			res = (*receive_uart_fun)(&rec_byte);
 			*mbus_frame_buffer++ = rec_byte;
 			/* Calculate the CRC of this field */
 			uIndex = uchCRCHi ^ rec_byte;
@@ -211,7 +234,7 @@ ModbusStatus_t MODBUS_RTU_MONITOR(unsigned char *mbus_frame_buffer,
 		len = rec_byte;
 	} else if (fun == Read_General_Reference
 			|| fun == Write_General_Reference) {
-		rec_byte = (*receive_uart_fun)();
+		res = (*receive_uart_fun)(&rec_byte);
 		*mbus_frame_buffer++ = rec_byte;
 		/* Calculate the CRC of this field */
 		uIndex = uchCRCHi ^ rec_byte;
@@ -224,7 +247,7 @@ ModbusStatus_t MODBUS_RTU_MONITOR(unsigned char *mbus_frame_buffer,
 	} else if (fun == Read_Write_4X_Registers) {
 		int l = 9;
 		while (l--) {
-			rec_byte = (*receive_uart_fun)();
+			res = (*receive_uart_fun)(&rec_byte);
 			*mbus_frame_buffer++ = rec_byte;
 			/* Calculate the CRC of this field */
 			uIndex = uchCRCHi ^ rec_byte;
@@ -244,7 +267,7 @@ ModbusStatus_t MODBUS_RTU_MONITOR(unsigned char *mbus_frame_buffer,
 	/* 8. Remain byte*/
 	while (len) {
 		/* 8.1 */
-		rec_byte = (*receive_uart_fun)();
+		res = (*receive_uart_fun)(&rec_byte);
 
 		/* 8.2 */
 		*mbus_frame_buffer++ = rec_byte;
@@ -258,10 +281,10 @@ ModbusStatus_t MODBUS_RTU_MONITOR(unsigned char *mbus_frame_buffer,
 	}
 
 	/* 9. CRC */
-	rec_byte = (*receive_uart_fun)();
+	res = (*receive_uart_fun)(&rec_byte);
 	*mbus_frame_buffer++ = rec_byte;
 
-	rec_byte = (*receive_uart_fun)();
+	res = (*receive_uart_fun)(&rec_byte);
 	*mbus_frame_buffer++ = rec_byte;
 
 	/* 10. Check CRC calculated, that is equal with CRC frame */

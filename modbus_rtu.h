@@ -25,8 +25,8 @@ extern "C"
 
 unsigned short CRC16(unsigned char *puchMsg, unsigned short usDataLen);
 ModbusStatus_t MODBUS_RTU_MONITOR(unsigned char *mbus_frame_buffer,
-		int monitor_fun_timeout, unsigned char (*receive_uart_fun)(),
-		volatile uint32_t *Tick, unsigned char (*Read_RX_PIN_fun)());
+		int monitor_fun_timeout, volatile uint32_t *Tick);
+
 #ifdef __cplusplus
 }
 #endif
