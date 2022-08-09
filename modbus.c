@@ -55,7 +55,7 @@ unsigned char SLAVE_Read_Coil_Status_Operation(unsigned char *RequestFrame,
 
     unsigned int coil_count = Start_Coil;
     unsigned char coil, array_byte = 3;
-    int bit = 0;
+    int bit = 7;
     int Coil_len = Num_of_coil;
 
 #ifdef debug
@@ -64,7 +64,7 @@ unsigned char SLAVE_Read_Coil_Status_Operation(unsigned char *RequestFrame,
 
     while (Coil_len--)
     {
-        if (bit == 0)
+        if (bit == 7)
             Byte_Count++;
 
         /* 1. get coil value from mem. note: coils 1–16 are addressed as 0–15 (coil_count % 8) */
@@ -74,9 +74,9 @@ unsigned char SLAVE_Read_Coil_Status_Operation(unsigned char *RequestFrame,
         Constructed_ResponseFrame[array_byte] |= (coil << bit);
 
         /* 2.1 bit 0 - 7 then plus array byte */
-        if (bit++ == 7)
+        if (bit-- == 0)
         {
-            bit = 0;
+            bit = 7;
             array_byte++;
         }
 
@@ -119,7 +119,7 @@ unsigned char SLAVE_Read_Input_Status_Operation(unsigned char *RequestFrame,
 
     unsigned int Input_count = Start_Input;
     unsigned char Input, array_byte = 3;
-    int bit = 0;
+    int bit = 7;
     int Input_len = Num_of_Input;
 
 #ifdef debug
@@ -128,7 +128,7 @@ unsigned char SLAVE_Read_Input_Status_Operation(unsigned char *RequestFrame,
 
     while (Input_len--)
     {
-        if (bit == 0)
+        if (bit == 7)
             Byte_Count++;
 
         /* 1. get Input value from mem. note: Inputs 1–16 are addressed as 0–15 (Input_count % 8) */
@@ -138,9 +138,9 @@ unsigned char SLAVE_Read_Input_Status_Operation(unsigned char *RequestFrame,
         Constructed_ResponseFrame[array_byte] |= (Input << bit);
 
         /* 2.1 bit 0 - 7 then plus array byte */
-        if (bit++ == 7)
+        if (bit-- == 0)
         {
-            bit = 0;
+            bit = 7;
             array_byte++;
         }
 
