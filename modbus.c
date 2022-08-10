@@ -71,7 +71,10 @@ unsigned char SLAVE_Read_Coil_Status_Operation(unsigned char *RequestFrame,
         coil = (COIL_MEM[(coil_count / 8) - 1] >> coil_count % 8) & 1;
 
         /* 2. set finded coli in reponse (in bit located) */
-        Constructed_ResponseFrame[array_byte] |= (coil << bit);
+        if(coil == 1)
+          Constructed_ResponseFrame[array_byte] |= (1 << bit);
+       else
+          Constructed_ResponseFrame[array_byte] &= ~(1 << bit);
 
         /* 2.1 bit 0 - 7 then plus array byte */
         if (bit-- == 0)
@@ -135,7 +138,10 @@ unsigned char SLAVE_Read_Input_Status_Operation(unsigned char *RequestFrame,
         Input = (INPUT_MEM[(Input_count / 8) - 1] >> Input_count % 8) & 1;
 
         /* 2. set finded coli in reponse (in bit located) */
-        Constructed_ResponseFrame[array_byte] |= (Input << bit);
+        if(Input == 1)
+          Constructed_ResponseFrame[array_byte] |= (1 << bit);
+       else
+          Constructed_ResponseFrame[array_byte] &= ~(1 << bit);
 
         /* 2.1 bit 0 - 7 then plus array byte */
         if (bit-- == 0)
