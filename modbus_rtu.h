@@ -26,7 +26,6 @@ extern "C"
 #define frame_timeout  5	/*< ms */
 
 
-unsigned short CRC16(unsigned char *puchMsg, unsigned short usDataLen);
 ModbusStatus_t MODBUS_RTU_MONITOR(unsigned char *mbus_frame_buffer,
 		int monitor_fun_timeout, volatile uint32_t *Tick);
 

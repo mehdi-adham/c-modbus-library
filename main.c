@@ -38,7 +38,7 @@
 
 /* Private macro -------------------------------------------------------------*/
 /* USER CODE BEGIN PM */
-#define buadrate	19200
+#define buadrate	115200
 /* USER CODE END PM */
 
 /* Private variables ---------------------------------------------------------*/
@@ -112,7 +112,9 @@ int main(void) {
 	 * */
 	while (1) {
 
-		ModbusStatus_t res = MODBUS_RTU_MONITOR(buff, 3000, &uwTick);
+		//ModbusStatus_t res =
+
+		MODBUS_RTU_MONITOR(buff, 3000, &uwTick);
 
 		/*if (res == MODBUS_OK) {
 			uint16_t len = MODBUS_FARME_PROCESS(buff, response);
