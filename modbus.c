@@ -11,7 +11,9 @@
 #include "modbus.h"
 #include "CRC.h"
 
-unsigned char COIL_MEM[MAX_COIL/8]/* start for test */= {
+unsigned char Run_for_first_time = First_time;
+
+static unsigned char COIL_MEM[MAX_COIL/8]/* start for test */= {
 	    0x00, 0xC1, 0x81, 0x40, 0x01, 0xC0, 0x80, 0x41, 0x01, 0xC0, 0x80, 0x41, 0x00, 0xC1, 0x81,
 	    0x40, 0x01, 0xC0, 0x80, 0x41, 0x00, 0xC1, 0x81, 0x40, 0x00, 0xC1, 0x81, 0x40, 0x01, 0xC0,
 	    0x80, 0x41, 0x01, 0xC0, 0x80, 0x41, 0x00, 0xC1, 0x81, 0x40, 0x00, 0xC1, 0x81, 0x40, 0x01,
@@ -20,7 +22,7 @@ unsigned char COIL_MEM[MAX_COIL/8]/* start for test */= {
 	    0x40, 0x01, 0xC0, 0x80, 0x41, 0x00, 0xC1, 0x81, 0x40, 0x01, 0xC0, 0x80, 0x41, 0x01, 0xC0
 	};/* end for test */
 
-unsigned char INPUT_MEM[MAX_INPUT/8]/* start for test */= {
+static unsigned char INPUT_MEM[MAX_INPUT/8]/* start for test */= {
 	    0x00, 0xC1, 0x81, 0x40, 0x01, 0xC0, 0x80, 0x41, 0x01, 0xC0, 0x80, 0x41, 0x00, 0xC1, 0x81,
 	    0x40, 0x01, 0xC0, 0x80, 0x41, 0x00, 0xC1, 0x81, 0x40, 0x00, 0xC1, 0x81, 0x40, 0x01, 0xC0,
 	    0x80, 0x41, 0x01, 0xC0, 0x80, 0x41, 0x00, 0xC1, 0x81, 0x40, 0x00, 0xC1, 0x81, 0x40, 0x01,
@@ -40,7 +42,7 @@ unsigned char INPUT_MEM[MAX_INPUT/8]/* start for test */= {
 	    0x00, 0xC1, 0x81, 0x40, 0x01, 0xC0, 0x80, 0x41, 0x00, 0xC1
 	};/* end for test */
 
-uint16_t HOLDING_REGISTERS_MEM[MAX_HOLDING_REGISTERS]/* start for test */= {
+static uint16_t HOLDING_REGISTERS_MEM[MAX_HOLDING_REGISTERS]/* start for test */= {
 	    0x81C1, 0x4081, 0x0140, 0xC001, 0x80C0, 0x4180, 0x0141, 0xC001, 0x80C0,
 	    0x4180, 0x0041, 0xC100, 0x81C1, 0x4081, 0x0140, 0xC001, 0x80C0, 0x4180,
 	    0x0041, 0xC100, 0x81C1, 0x4081, 0x0040, 0xC100, 0x81C1, 0x4081, 0x0140,
@@ -68,17 +70,45 @@ static unsigned char SLAVE_Read_Holding_Registers_Operation(unsigned char *Reque
 
 unsigned char MODBUS_FARME_PROCESS(unsigned char *RequestFrame, unsigned char *ResponseFrame)
 {
+	unsigned char lengthOfResponseFrame;
     unsigned char function = RequestFrame[1];
-    if (function == Read_Coil_Status){
-       return SLAVE_Read_Coil_Status_Operation(RequestFrame, ResponseFrame);
-    }
-    else if(function == Read_Input_Status){
-       return SLAVE_Read_Input_Status_Operation(RequestFrame, ResponseFrame);
-    }
-    else if(function == Read_Holding_Registers){
-        return SLAVE_Read_Holding_Registers_Operation(RequestFrame, ResponseFrame);
-    }
-    return 0;
+
+
+#ifdef	WITHOUT_EEPROM
+	/**
+	 * After the micro reset, when the monitor function is called for the first time in the program,
+	 * a write command must be given by the master, not a read command, because the memory of all
+	 * registers, coils, etc has been reset to zero, and it must be initialized again.
+	 */
+	if (Run_for_first_time != First_time) {
+#endif
+
+		if (function == Read_Coil_Status) {
+			lengthOfResponseFrame = SLAVE_Read_Coil_Status_Operation(RequestFrame, ResponseFrame);
+		}
+		else if (function == Read_Input_Status) {
+			lengthOfResponseFrame = SLAVE_Read_Input_Status_Operation(RequestFrame,
+					ResponseFrame);
+		}
+		else if (function == Read_Holding_Registers) {
+			lengthOfResponseFrame = SLAVE_Read_Holding_Registers_Operation(RequestFrame,
+					ResponseFrame);
+		}
+
+#ifdef	WITHOUT_EEPROM
+	}
+	else if (Run_for_first_time == First_time){
+		Run_for_first_time = !First_time;
+#endif
+
+
+
+
+#ifdef	WITHOUT_EEPROM
+	}
+#endif
+
+	return lengthOfResponseFrame;
 }
 /**
  * @brief 

@@ -58,7 +58,8 @@ typedef enum
   MODBUS_MONITOR_TIMEOUT  = 0x04U,
   MODBUS_ERROR    = 0x05U,
   MODBUS_MONITOR_BUSY     = 0x06U,
-  MODBUS_BROADCAST = 0X07U
+  MODBUS_BROADCAST = 0X07U,
+  First_time  = 0x00U
 } ModbusStatus_t;
 
 /* Modbus BROADCAST Address */

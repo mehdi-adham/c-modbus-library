@@ -26,7 +26,7 @@ unsigned char response_buffer[256];
  the uart_receive Handler could be implemented in the user file
  * @return Modbus Status
  */
-__attribute__((weak))	 ModbusStatus_t uart_receive_Handler(uint8_t *Data) {
+__attribute__((weak))	 ModbusStatus_t modbus_uart_receive_Handler(uint8_t *Data) {
 	return 0;
 }
 
@@ -36,7 +36,7 @@ __attribute__((weak))	 ModbusStatus_t uart_receive_Handler(uint8_t *Data) {
  the uart transmit Handler could be implemented in the user file
  * @return None
  */
-__attribute__((weak)) 	void uart_transmit_Handler(uint8_t *Data,
+__attribute__((weak)) 	void modbus_uart_transmit_Handler(uint8_t *Data,
 		uint16_t length) {
 
 }
@@ -82,9 +82,9 @@ ModbusStatus_t MODBUS_RTU_MONITOR(unsigned char *mbus_frame_buffer,
 	/* The starting address of the buffer */
 	unsigned char *starting_address_of_buffer = mbus_frame_buffer;
 
-	unsigned char (*receive_uart_fun)() = uart_receive_Handler;
+	unsigned char (*receive_uart_fun)() = modbus_uart_receive_Handler;
 	void (*transmit_uart_fun)(uint8_t *Data,
-			uint16_t length) = uart_transmit_Handler;
+			uint16_t length) = modbus_uart_transmit_Handler;
 	uint16_t counter = 0;
 
 	/* Init tickstart for monitor timeout management */

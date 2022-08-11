@@ -47,7 +47,7 @@ UART_HandleTypeDef huart1;
 /* USER CODE BEGIN PV */
 uint8_t buff[250];
 uint8_t response[250];
-int timeout_3_5C = 40;//((1000 * 4 * 11) / buadrate);
+int timeout_3_5C = 40; // ms ((1000 * 4 * 11) / buadrate);
 
 /* USER CODE END PV */
 
@@ -56,12 +56,12 @@ void SystemClock_Config(void);
 static void MX_GPIO_Init(void);
 static void MX_USART1_UART_Init(void);
 /* USER CODE BEGIN PFP */
-ModbusStatus_t uart_receive_Handler(uint8_t *Data) {
+ModbusStatus_t modbus_uart_receive_Handler(uint8_t *Data) {
 	ModbusStatus_t res;
 	res = (ModbusStatus_t) HAL_UART_Receive(&huart1, Data, 1,  timeout_3_5C);
 	return res;
 }
-void uart_transmit_Handler(uint8_t *Data, uint16_t length) {
+void modbus_uart_transmit_Handler(uint8_t *Data, uint16_t length) {
 	HAL_Delay(5);
 	HAL_UART_Transmit(&huart1, Data, length, 100);
 }
