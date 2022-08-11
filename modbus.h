@@ -27,6 +27,8 @@ extern "C" {
 /* 184/384:[100]   484:[254]     584/984/884:[125]    M84:[64] */
 #define MAX_HOLDING_REGISTERS       254
 
+/* 184/384:[100]   484:[32]     584/984/884:[125]    M84:[4] */
+#define MAX_INPUT_REGISTERS         254
 
 /* Modbus function codes. */
 enum Modbus_Function_Name{
