@@ -64,6 +64,11 @@ typedef enum
   First_time  = 0x00U
 } ModbusStatus_t;
 
+typedef enum  {
+	Listen_Only = 0,
+	Normal = 1
+} ModbusMonitorMode_t;
+
 /* Modbus BROADCAST Address */
 
 
