@@ -27,7 +27,7 @@ extern "C"
 
 
 ModbusStatus_t MODBUS_RTU_MONITOR(unsigned char *mbus_frame_buffer,
-		int monitor_fun_timeout, volatile uint32_t *Tick);
+		int monitor_fun_timeout, volatile uint32_t *Tick, ModbusMonitorMode_t Mode);
 
 #ifdef __cplusplus
 }

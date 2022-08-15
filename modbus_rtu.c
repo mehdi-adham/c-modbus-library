@@ -62,13 +62,14 @@ __attribute__((weak)) 	void modbus_uart_transmit_Handler(uint8_t *Data,
  * {0x11, 0x16, 0x00, 0x04, 0x00, 0xF2 ,0x00 ,0x25, 0x66, 0xE2}
  * {0x11, 0x17, 0x00, 0x04, 0x00, 0x06 ,0x00 ,0x0F, 0x00, 0x03, 0x06, 0x00, 0xFF, 0x00, 0xFF, 0x00, 0xFF, 0x1C, 0x56}
  * {0x11, 0x18, 0x04, 0xDE, 0x07, 0x87}
+ *
  * @param mbus_frame_buffer
  * @param monitor_fun_timeout
  * @param Tick Get a point to tick value in millisecond.
  * @param receive_uart_fun
  */
 ModbusStatus_t MODBUS_RTU_MONITOR(unsigned char *mbus_frame_buffer,
-		int monitor_fun_timeout, volatile uint32_t *Tick) {
+		int monitor_fun_timeout, volatile uint32_t *Tick, ModbusMonitorMode_t Mode) {
 	unsigned char uchCRCHi = 0xFF; /* high byte of CRC initialized */
 	unsigned char uchCRCLo = 0xFF; /* low byte of CRC initialized */
 	unsigned char uIndex; /* will index into CRC lookup table */
@@ -87,7 +88,7 @@ ModbusStatus_t MODBUS_RTU_MONITOR(unsigned char *mbus_frame_buffer,
 			uint16_t length) = modbus_uart_transmit_Handler;
 	uint16_t counter = 0;
 
-	/* Init tickstart for monitor timeout management */
+	/* Initial tick start for monitor timeout management */
 	tickstart_for_monitor_timeout = *Tick;
 	while (1) {
 		/* 0. Check for monitor function timeout */
@@ -111,18 +112,9 @@ ModbusStatus_t MODBUS_RTU_MONITOR(unsigned char *mbus_frame_buffer,
 				return MODBUS_MONITOR_TIMEOUT;
 		} while (res != MODBUS_OK);
 
-#ifdef debug
-    printf("id [%d]\n", rec_byte);
-#endif
 
-		/* Broadcast */
-		if (rec_byte == 0) {
-			return MODBUS_BROADCAST;
-		}
-
-		/* 3. if out of range allowed address */
-		/* if Address field not match with slave ID */
-		if (rec_byte > MAX_SLAVE_ADDRESS || rec_byte != SLAVE_ADDRESS)
+		/* 3. if out of range allowed address OR Address field not match with slave ID AND not broadcast */
+		if (rec_byte > MAX_SLAVE_ADDRESS || (rec_byte != SLAVE_ADDRESS && rec_byte != Broadcast))
 			/* return to 0. */
 			continue;
 
@@ -147,9 +139,6 @@ ModbusStatus_t MODBUS_RTU_MONITOR(unsigned char *mbus_frame_buffer,
 		uchCRCHi = uchCRCLo ^ auchCRCHi[uIndex];
 		uchCRCLo = auchCRCLo[uIndex];
 
-#ifdef debug
-    printf("fun [%d]\n", fun);
-#endif
 
 		/* 7. */
 		/* Extracting length (register or coil ...) from frame data */
@@ -209,9 +198,6 @@ ModbusStatus_t MODBUS_RTU_MONITOR(unsigned char *mbus_frame_buffer,
 			len = 2;
 		}
 
-#ifdef debug
-    printf("len [%d]\n", len);
-#endif
 
 		/* 8. Remain byte*/
 		while (len) {
@@ -258,13 +244,13 @@ ModbusStatus_t MODBUS_RTU_MONITOR(unsigned char *mbus_frame_buffer,
 		break;
 	}/*< End while() for frame time out */
 
-	/* 10. MODBUS PROCESS for Constructed ResponseFrame */
-	uint16_t len = MODBUS_FARME_PROCESS(frame_buffer, response_buffer);
+	if(Mode == Normal){
+		/* 10. MODBUS PROCESS for Constructed Response Frame */
+		uint16_t len = MODBUS_FARME_PROCESS(frame_buffer, response_buffer);
 
-	/* 11. Transmit frame */
-	(*transmit_uart_fun)(response_buffer, len);
-
+		/* 11. Transmit frame */
+		(*transmit_uart_fun)(response_buffer, len);
+	}
 
 	return MODBUS_OK;
 }
-

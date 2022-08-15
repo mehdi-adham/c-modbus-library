@@ -21,14 +21,16 @@ extern "C" {
 #endif
 
 /* 184/384:[800]   484:[512]     584/984/884:[2000]    M84:[64] */
-#define MAX_COIL      2000
-#define MAX_INPUT      2000
+#define MAX_COIL      	2000
+#define MAX_INPUT      	2000
 
 /* 184/384:[100]   484:[254]     584/984/884:[125]    M84:[64] */
 #define MAX_HOLDING_REGISTERS       254
 
 /* 184/384:[100]   484:[32]     584/984/884:[125]    M84:[4] */
 #define MAX_INPUT_REGISTERS         254
+
+#define Broadcast	0
 
 /* Modbus function codes. */
 enum Modbus_Function_Name{
@@ -60,17 +62,13 @@ typedef enum
   MODBUS_MONITOR_TIMEOUT  = 0x04U,
   MODBUS_ERROR    = 0x05U,
   MODBUS_MONITOR_BUSY     = 0x06U,
-  MODBUS_BROADCAST = 0X07U,
-  First_time  = 0x00U
+  MODBUS_BROADCAST = 0X07U
 } ModbusStatus_t;
 
 typedef enum  {
 	Listen_Only = 0,
 	Normal = 1
 } ModbusMonitorMode_t;
-
-/* Modbus BROADCAST Address */
-
 
 /* Modbus Protocol Exceptions. */
 
