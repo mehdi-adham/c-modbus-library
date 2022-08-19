@@ -27,10 +27,10 @@ set_slave_ID(17);
 ### MODBUS RTU MONITOR function
 we use the Modbus network monitor function According to the above settings, this function receives the frame related to this device from the serial, processes it and applies commands (reading/writing to registers or coils) and prepares the response or exception response for the master. and sends via serial.
 
-param **mbus_frame_buffer**: Saves the frame in the user buffer
-param **Tick**: Get a pointer to tick value in millisecond. For setting the timeout to exit the function if the master device  does not send the frame related to this device
-param **Mode**: 1. Normal mode (by responding to the master and applying commands) 2. only listening mode (without responding to the master and without applying commands)
-return **ModbusStatus_t**: Return Modbus Status 
+- **param mbus_frame_buffer**: Saves the frame in the user buffer
+- **param Tick**: Get a pointer to tick value in millisecond. For setting the timeout to exit the function if the master device  does not send the frame related to this device
+- **param Mode**: 1. Normal mode (by responding to the master and applying commands) 2. only listening mode (without responding to the master and without applying commands)
+- **return ModbusStatus_t**: Return Modbus Status 
 
 ```c
 	/* Modbus network monitor to receive frames from the master device */
