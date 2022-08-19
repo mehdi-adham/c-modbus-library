@@ -70,8 +70,33 @@ typedef enum  {
 	Normal = 1
 } ModbusMonitorMode_t;
 
+typedef enum Serial_Transmission_Modes {
+	RTU,
+	ASCII
+} Serial_Transmission_Modes_t;
+
+typedef enum Parity{
+	EVEN_PARITY,
+	ODD_PARITY,
+	NONE_PARITY
+} Parity_t;
+
+typedef enum Stop_Bit{
+	StopBit_1,
+	StopBit_2
+} Stop_Bit_t;
+
+typedef struct Serial {
+	uint32_t *UART;
+	int BaudRate;
+	Parity_t Parity;
+	Stop_Bit_t StopBit;
+} Serial_t;
+
 /* Modbus Protocol Exceptions. */
 
+void modbus_serial_init(Serial_t  *serial);
+unsigned char Get_coil_status(int coli);
 unsigned char MODBUS_FARME_PROCESS(unsigned char *RequestFrame, unsigned char *ResponseFrame);
 
 

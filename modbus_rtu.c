@@ -14,6 +14,8 @@
 #include "CRC.h"
 #include <stdint.h>
 
+unsigned char SLAVE_ADDRESS;
+
 extern unsigned char auchCRCHi[];
 extern unsigned char auchCRCLo[];
 
@@ -41,9 +43,20 @@ __attribute__((weak)) 	void modbus_uart_transmit_Handler(uint8_t *Data,
 
 }
 
-
 /**
  * @brief
+ *
+ * @param slave_ID
+ */
+void set_slave_ID(unsigned char slave_ID){
+	SLAVE_ADDRESS = slave_ID;
+}
+
+/**
+ * @brief This function receives the frame related to this device from serial, 
+ * processes it and applies commands (reading/writing to registers or coils) and 
+ * prepares the response or exception response for the master and sends it via serial.
+ * 
  * @note Template Frame For Test:
  * {0x11, 0x01, 0x00, 0x13, 0x00, 0x25, 0x0E, 0x84}
  * {0x11, 0x02, 0x00, 0xC4, 0x00, 0x16, 0xBA, 0xA9}
@@ -63,10 +76,13 @@ __attribute__((weak)) 	void modbus_uart_transmit_Handler(uint8_t *Data,
  * {0x11, 0x17, 0x00, 0x04, 0x00, 0x06 ,0x00 ,0x0F, 0x00, 0x03, 0x06, 0x00, 0xFF, 0x00, 0xFF, 0x00, 0xFF, 0x1C, 0x56}
  * {0x11, 0x18, 0x04, 0xDE, 0x07, 0x87}
  *
- * @param mbus_frame_buffer
- * @param monitor_fun_timeout
- * @param Tick Get a point to tick value in millisecond.
- * @param receive_uart_fun
+ * @param mbus_frame_buffer Saves the frame in the user buffer
+ * @param Tick Get a pointer to tick value in millisecond. For 
+ * setting the timeout to exit the function if the master device 
+ * does not send the frame related to this device
+ * @param Mode 1. Normal mode (by responding to the master and applying commands) 
+ * 2. only listening mode (without responding to the master and without applying commands)
+ * @return ModbusStatus_t Return Modbus Status
  */
 ModbusStatus_t MODBUS_RTU_MONITOR(unsigned char *mbus_frame_buffer,
 		int monitor_fun_timeout, volatile uint32_t *Tick, ModbusMonitorMode_t Mode) {
@@ -199,7 +215,7 @@ ModbusStatus_t MODBUS_RTU_MONITOR(unsigned char *mbus_frame_buffer,
 		}
 
 
-		/* 8. Remain byte*/
+		/* 8. Remain byte */
 		while (len) {
 			/* 8.1 */
 			res = (*receive_uart_fun)(&rec_byte);

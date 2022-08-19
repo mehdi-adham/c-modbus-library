@@ -11,6 +11,16 @@
 #include "modbus.h"
 #include "CRC.h"
 
+/**
+ * @brief
+ * NOTE : This function should not be modified, when the callback is needed,
+ the uart_init Handler could be implemented in the user file
+ * @return Modbus Status
+ */
+__attribute__((weak))	 void modbus_uart_init_Handler(Serial_t *Serial) {
+
+}
+
 static unsigned char COIL_MEM[MAX_COIL / 8] /* start for test */ =
     {0x00, 0xC1, 0x81, 0x40, 0x01, 0xC0, 0x80, 0x41, 0x01, 0xC0, 0x80, 0x41,
      0x00, 0xC1, 0x81, 0x40, 0x01, 0xC0, 0x80, 0x41, 0x00, 0xC1, 0x81, 0x40,
@@ -104,16 +114,54 @@ static unsigned char SLAVE_Force_Single_Coil_Operation(
     unsigned char *RequestFrame, unsigned char *Constructed_ResponseFrame);
 static unsigned char SLAVE_Preset_Single_Register_Operation(
     unsigned char *RequestFrame, unsigned char *Constructed_ResponseFrame);
-unsigned char SLAVE_Read_Exception_Status_Operation(unsigned char *RequestFrame,
-                                                    unsigned char *Constructed_ResponseFrame);
-unsigned char SLAVE_Fetch_Comm_Event_Counter_Operation(
-    unsigned char *RequestFrame, unsigned char *Constructed_ResponseFrame);
-unsigned char SLAVE_Fetch_Comm_Event_Log_Operation(unsigned char *RequestFrame,
-                                                   unsigned char *Constructed_ResponseFrame);
 static unsigned char SLAVE_Force_Multiple_Coils_Operation(
     unsigned char *RequestFrame, unsigned char *Constructed_ResponseFrame);
 static unsigned char SLAVE_Preset_Multiple_Register_Operation(
     unsigned char *RequestFrame, unsigned char *Constructed_ResponseFrame);
+
+
+
+/* */
+unsigned char SLAVE_Read_Exception_Status_Operation(
+    unsigned char *RequestFrame, unsigned char *Constructed_ResponseFrame);
+unsigned char SLAVE_Fetch_Comm_Event_Counter_Operation(
+    unsigned char *RequestFrame, unsigned char *Constructed_ResponseFrame);
+unsigned char SLAVE_Fetch_Comm_Event_Log_Operation(
+    unsigned char *RequestFrame, unsigned char *Constructed_ResponseFrame);
+
+unsigned char SLAVE_Report_Slave_ID_Operation(
+    unsigned char *RequestFrame, unsigned char *Constructed_ResponseFrame);
+unsigned char SLAVE_Read_General_Reference_Operation(
+    unsigned char *RequestFrame, unsigned char *Constructed_ResponseFrame);
+unsigned char SLAVE_Write_General_Reference_Operation(
+    unsigned char *RequestFrame, unsigned char *Constructed_ResponseFrame);
+unsigned char SLAVE_Mask_Write_4X_Register_Operation(
+    unsigned char *RequestFrame, unsigned char *Constructed_ResponseFrame);
+unsigned char SLAVE_Read_Write_4X_Registers_Operation(
+    unsigned char *RequestFrame, unsigned char *Constructed_ResponseFrame);
+unsigned char SLAVE_Read_FIFO_Queue_Operation(
+    unsigned char *RequestFrame, unsigned char *Constructed_ResponseFrame);
+/* */
+
+/**
+ * @brief UART initialization
+ *
+ * @param serial UART parameter
+ */
+void modbus_serial_init(Serial_t  *serial){
+	modbus_uart_init_Handler(serial);
+}
+
+/**
+ * @brief Get coil status from coil array COIL_MEM[].
+ * 
+ * @param coil 
+ * @return Return coil status from coil array COIL_MEM[].
+ */
+unsigned char Get_coil_status(int coil){
+	coil--;
+	return (COIL_MEM[coil / 8] >> coil & 1);
+}
 /**
  * @brief This function is to prepare the response to the master and perform the commands
  * (write/read on the coil and register, etc.) according to the function code.
@@ -187,6 +235,11 @@ unsigned char MODBUS_FARME_PROCESS(unsigned char *RequestFrame,
             lengthOfResponseFrame = SLAVE_Preset_Multiple_Register_Operation(
                 RequestFrame, ResponseFrame);
         }
+        else{
+        	/* Not Supported */
+        	return 0;
+        }
+
 
 #ifdef WITHOUT_EEPROM
     }
@@ -471,7 +524,7 @@ static unsigned char SLAVE_Preset_Single_Register_Operation(
 
     /* The normal response is an echo of the query, returned after the register contents
      have been preset. */
-    Constructed_ResponseFrame[0] = RequestFrame[0]; /* Slave Addrress */
+    Constructed_ResponseFrame[0] = RequestFrame[0]; /* Slave Address */
     Constructed_ResponseFrame[1] = RequestFrame[1]; /* Function Code */
     Constructed_ResponseFrame[2] = RequestFrame[2]; /* Register Address Hi */
     Constructed_ResponseFrame[3] = RequestFrame[3]; /* Register Address Lo */
@@ -643,3 +696,88 @@ static unsigned char SLAVE_Preset_Multiple_Register_Operation(
 
     return 8;
 }
+
+/**
+ * @brief
+ *
+ * @param RequestFrame
+ * @param Constructed_ResponseFrame
+ * @return return Frame length
+ */
+unsigned char SLAVE_Report_Slave_ID_Operation(
+    unsigned char *RequestFrame, unsigned char *Constructed_ResponseFrame)
+{
+
+     return 0;
+}
+
+/**
+ * @brief
+ *
+ * @param RequestFrame
+ * @param Constructed_ResponseFrame
+ * @return return Frame length
+ */
+unsigned char SLAVE_Read_General_Reference_Operation(
+    unsigned char *RequestFrame, unsigned char *Constructed_ResponseFrame)
+{
+
+    return 0;
+}
+
+/**
+ * @brief
+ *
+ * @param RequestFrame
+ * @param Constructed_ResponseFrame
+ * @return return Frame length
+ */
+unsigned char SLAVE_Write_General_Reference_Operation(
+    unsigned char *RequestFrame, unsigned char *Constructed_ResponseFrame)
+{
+
+    return 0;
+}
+
+/**
+ * @brief
+ *
+ * @param RequestFrame
+ * @param Constructed_ResponseFrame
+ * @return return Frame length
+ */
+ unsigned char SLAVE_Mask_Write_4X_Register_Operation(
+    unsigned char *RequestFrame, unsigned char *Constructed_ResponseFrame)
+{
+
+    return 0;
+}
+
+/**
+ * @brief
+ *
+ * @param RequestFrame
+ * @param Constructed_ResponseFrame
+ * @return return Frame length
+ */
+ unsigned char SLAVE_Read_Write_4X_Registers_Operation(
+    unsigned char *RequestFrame, unsigned char *Constructed_ResponseFrame)
+{
+
+    return 0;
+}
+
+/**
+ * @brief Reads the contents of a First–In–First–Out (FIFO) queue of 4XXXX registers.
+ *
+ * @param RequestFrame
+ * @param Constructed_ResponseFrame
+ * @return return Frame length
+ */
+unsigned char SLAVE_Read_FIFO_Queue_Operation(
+    unsigned char *RequestFrame, unsigned char *Constructed_ResponseFrame)
+{
+
+    return 0;
+}
+
