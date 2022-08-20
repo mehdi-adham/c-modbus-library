@@ -64,7 +64,7 @@ __attribute__((weak)) 	void modbus_uart_transmit_Handler(uint8_t *Data,
 }
 ```
 
-Copy the Handler functions from the modbus.c library and use it in your file for implementation.
+Copy the Modbus Handler functions from the modbus.c library and use it in your file for implementation.
 
 ```c
 /**
@@ -79,7 +79,7 @@ __attribute__((weak))	 void modbus_uart_init_Handler(Serial_t *Serial) {
 ```
 
 
-### Example Handler implemention for HAL library (STM32).
+### An example of a Modbus Handler implementation for the HAL library (STM32).
 
 ```c
 ModbusStatus_t modbus_uart_receive_Handler(uint8_t *Data) {
