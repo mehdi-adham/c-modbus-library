@@ -37,9 +37,9 @@ we use the Modbus network monitor function According to the above settings, this
 	ModbusStatus_t res = MODBUS_RTU_MONITOR(buff, 3000, &uwTick, Normal);
 ```
 
-### How to use Handler function's (current version)
+### How to use Modbus Handler function's (current version)
 
-Copy the Handler functions from the modbus_rtu.c library and use it in your file for implementation.
+Copy the Modbus Handler functions from the modbus_rtu.c library and use it in your file for implementation.
 
 ```c
 /**
