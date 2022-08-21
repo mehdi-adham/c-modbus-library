@@ -21,104 +21,61 @@ __attribute__((weak))	 void modbus_uart_init_Handler(Serial_t *Serial) {
 
 }
 
-static unsigned char COIL_MEM[MAX_COIL / 8] /* start for test */ =
-    {0x00, 0xC1, 0x81, 0x40, 0x01, 0xC0, 0x80, 0x41, 0x01, 0xC0, 0x80, 0x41,
-     0x00, 0xC1, 0x81, 0x40, 0x01, 0xC0, 0x80, 0x41, 0x00, 0xC1, 0x81, 0x40,
-     0x00, 0xC1, 0x81, 0x40, 0x01, 0xC0, 0x80, 0x41, 0x01, 0xC0, 0x80, 0x41,
-     0x00, 0xC1, 0x81, 0x40, 0x00, 0xC1, 0x81, 0x40, 0x01, 0xC0, 0x80, 0x41,
-     0x00, 0xC1, 0x81, 0x40, 0x01, 0xC0, 0x80, 0x41, 0x01, 0xC0, 0x80, 0x41,
-     0x00, 0xC1, 0x81, 0x40, 0x01, 0xC0, 0x80, 0x41, 0x00, 0xC1, 0x81, 0x40,
-     0x00, 0xC1, 0x81, 0x40, 0x01, 0xC0, 0x80, 0x41, 0x00, 0xC1, 0x81, 0x40,
-     0x00, 0xC1, 0x81, 0x40, 0x01, 0xC0, 0x80, 0x41, 0x01, 0xC0, 0x80, 0x41,
-     0x00, 0xC1, 0x81, 0x40, 0x01, 0xC0, 0x80, 0x41, 0x00, 0xC1, 0x81, 0x40,
-     0x00, 0xC1, 0x81, 0x40, 0x01, 0xC0, 0x80, 0x41, 0x01, 0xC0, 0x80, 0x41,
-     0x00, 0xC1, 0x81, 0x40, 0x00, 0xC1, 0x81, 0x40, 0x01, 0xC0, 0x80, 0x41,
-     0x00, 0xC1, 0x81, 0x40, 0x01, 0xC0, 0x80, 0x41, 0x01, 0xC0, 0x80, 0x41,
-     0x00, 0xC1, 0x81, 0x40, 0x01, 0xC0, 0x80, 0x41, 0x00, 0xC1, 0x81, 0x40,
-     0x00, 0xC1, 0x81, 0x40, 0x01, 0xC0, 0x80, 0x41, 0x00, 0xC1, 0x81, 0x40,
-     0x00, 0xC1, 0x81, 0x40, 0x01, 0xC0, 0x80, 0x41, 0x01, 0xC0, 0x80, 0x41,
-     0x00, 0xC1, 0x81, 0x40, 0x01, 0xC0, 0x80, 0x41, 0x00, 0xC1, 0x81, 0x40,
-     0x00, 0xC1, 0x81, 0x40, 0x01, 0xC0, 0x80, 0x41, 0x01, 0xC0, 0x80, 0x41,
-     0x00, 0xC1, 0x81, 0x40, 0x00, 0xC1, 0x81, 0x40, 0x01, 0xC0, 0x80, 0x41,
-     0x00, 0xC1, 0x81, 0x40, 0x01, 0xC0, 0x80, 0x41, 0x01, 0xC0, 0x80, 0x41,
-     0x00, 0xC1, 0x81, 0x40, 0x01, 0xC0, 0x80, 0x41, 0x00, 0xC1, 0x81, 0x40,
-     0x00, 0xC1, 0x81, 0x40, 0x01, 0xC0, 0x80, 0x41, 0x00, 0xC1}; /* end for test */
+extern unsigned char SLAVE_ADDRESS;
 
-static unsigned char INPUT_MEM[MAX_INPUT / 8] /* start for test */ =
-    {0xC1, 0x81, 0x40, 0x01, 0xC0, 0x80, 0x41, 0x01, 0xC0, 0x80, 0x41, 0x00,
-     0xC1, 0x81, 0x40, 0x01, 0xC0, 0x80, 0x41, 0x00, 0xC1, 0x81, 0x40, 0x00,
-     0xC1, 0x81, 0x40, 0x01, 0xC0, 0x80, 0x41, 0x01, 0xC0, 0x80, 0x41, 0x00,
-     0xC1, 0x81, 0x40, 0x00, 0xC1, 0x81, 0x40, 0x01, 0xC0, 0x80, 0x41, 0x00,
-     0xC1, 0x81, 0x40, 0x01, 0xC0, 0x80, 0x41, 0x01, 0xC0, 0x80, 0x41, 0x00,
-     0xC1, 0x81, 0x40, 0x01, 0xC0, 0x80, 0x41, 0x00, 0xC1, 0x81, 0x40, 0x00,
-     0xC1, 0x81, 0x40, 0x01, 0xC0, 0x80, 0x41, 0x00, 0xC1, 0x81, 0x40, 0x01,
-     0xC0, 0x80, 0x41, 0x01, 0xC0, 0x00, 0xC1, 0x81, 0x40, 0x01, 0xC0, 0x80,
-     0x41, 0x01, 0xC0, 0x80, 0x41, 0x00, 0xC1, 0x81, 0x40, 0x01, 0xC0, 0x80,
-     0x41, 0x00, 0xC1, 0x81, 0x40, 0x00, 0xC1, 0x81, 0x40, 0x01, 0xC0, 0x80,
-     0x41, 0x01, 0xC0, 0x80, 0x41, 0x00, 0xC1, 0x81, 0x40, 0x00, 0xC1, 0x81,
-     0x40, 0x01, 0xC0, 0x80, 0x41, 0x00, 0xC1, 0x81, 0x40, 0x01, 0xC0, 0x80,
-     0x41, 0x01, 0xC0, 0x80, 0x41, 0x00, 0xC1, 0x81, 0x40, 0x01, 0xC0, 0x80,
-     0x41, 0x00, 0xC1, 0x81, 0x40, 0x00, 0xC1, 0x81, 0x40, 0x01, 0xC0, 0x80,
-     0x41, 0x00, 0xC1, 0x81, 0x40, 0x01, 0xC0, 0x80, 0x41, 0x01, 0xC0, 0x00,
-     0xC1, 0x81, 0x40, 0x01, 0xC0, 0x80, 0x41, 0x01, 0xC0, 0x80, 0x41, 0x00,
-     0xC1, 0x81, 0x40, 0x01, 0xC0, 0x80, 0x41, 0x00, 0xC1, 0x81, 0x40, 0x00,
-     0xC1, 0x81, 0x40, 0x01, 0xC0, 0x80, 0x41, 0x01, 0xC0, 0x80, 0x41, 0x00,
-     0xC1, 0x81, 0x40, 0x00, 0xC1, 0x81, 0x40, 0x01, 0xC0, 0x80, 0x41, 0x00,
-     0xC1, 0x81, 0x40, 0x01, 0xC0, 0x80, 0x41, 0x01, 0xC0, 0x80, 0x41, 0x00,
-     0xC1, 0x81, 0x40, 0x01, 0xC0, 0x80, 0x41, 0x00, 0xC1, 0x00}; /* end for test */
+/* Memory map for COIL, INPUT, HOLDING_REGISTERS, INPUT_REGISTERS */
 
-static uint16_t HOLDING_REGISTERS_MEM[MAX_HOLDING_REGISTERS] /* start for test */ =
-    {0x81C1, 0x4081, 0x0140, 0xC001, 0x80C0, 0x4180, 0x0141, 0xC001,
-     0x80C0, 0x4180, 0x0041, 0xC100, 0x81C1, 0x4081, 0x0140, 0xC001,
-     0x80C0, 0x4180, 0x0041, 0xC100, 0x81C1, 0x4081, 0x0040, 0xC100,
-     0x81C1, 0x4081, 0x0140, 0xC001, 0x80C0, 0x4180, 0x0141, 0xC001,
-     0x80C0, 0x4180, 0x0041, 0xC100, 0x81C1, 0x4081, 0x0040, 0xC100,
-     0x81C1, 0x4081, 0x0140, 0xC001, 0x80C0, 0x4180, 0x0041, 0xC100,
-     0x81C1, 0x4081, 0x0140, 0xC001, 0x80C0, 0x4180, 0x0141, 0xC001,
-     0x80C0, 0x4180, 0x0041, 0xC100, 0x81C1, 0x4081, 0x0140, 0xC001,
-     0x80C0, 0x4180, 0x0041, 0xC100, 0x81C1, 0x4081, 0x0040, 0xC100,
-     0x81C1, 0x4081, 0x0140, 0xC001, 0x80C0, 0x4180, 0x0041, 0xC100,
-     0x81C1, 0x4081, 0x0140, 0xC001, 0x80C0, 0x4180, 0x0141, 0xC001,
-     0x00C0, 0xC100, 0x81C1, 0x4081, 0x0140, 0xC001, 0x80C0, 0x4180,
-     0x0141, 0xC001, 0x80C0, 0x4180, 0x0041, 0xC100, 0x81C1, 0x4081,
-     0x0140, 0xC001, 0x80C0, 0x4180, 0x0041, 0xC100, 0x81C1, 0x4081,
-     0x0040, 0xC100, 0x81C1, 0x4081, 0x0140, 0xC001, 0x80C0, 0x4180,
-     0x0141, 0xC001, 0x80C0, 0x4180, 0x0041}; /* end for test */
+#if MAX_COIL > 0
+	static unsigned char COIL_MEM[MAX_COIL / 8];
+#endif
 
-static uint16_t INPUT_REGISTERS_MEM[MAX_INPUT_REGISTERS] /* start for test */ = {
-    0x81C1, 0x4081, 0x0140, 0xC001, 0x80C0, 0x4180, 0x0141, 0xC001, 0x80C0,
-    0x4180, 0x0041, 0xC100, 0x81C1, 0x4081, 0x0140, 0xC001, 0x80C0, 0x4180,
-    0x0041, 0xC100, 0x81C1, 0x4081, 0x0040, 0xC100, 0x81C1, 0x4081, 0x0140,
-    0xC001, 0x80C0, 0x4180, 0x0141, 0xC001, 0x80C0, 0x4180, 0x0041, 0xC100,
-    0x81C1, 0x4081, 0x0040, 0xC100, 0x81C1, 0x4081, 0x0140, 0xC001, 0x80C0,
-    0x4180, 0x0041, 0xC100, 0x81C1, 0x4081, 0x0140, 0xC001, 0x80C0, 0x4180,
-    0x0141, 0xC001, 0x80C0, 0x4180, 0x0041, 0xC100, 0x81C1, 0x4081, 0x0140,
-    0xC001, 0x80C0, 0x4180, 0x0041, 0xC100, 0x81C1, 0x4081, 0x0040, 0xC100,
-    0x81C1, 0x4081, 0x0140, 0xC001, 0x80C0, 0x4180, 0x0041, 0xC100, 0x81C1,
-    0x4081, 0x0140, 0xC001, 0x80C0, 0x4180, 0x0141, 0xC001, 0x00C0, 0xC100,
-    0x81C1, 0x4081, 0x0140, 0xC001, 0x80C0, 0x4180, 0x0141, 0xC001, 0x80C0,
-    0x4180, 0x0041, 0xC100, 0x81C1, 0x4081, 0x0140, 0xC001, 0x80C0, 0x4180,
-    0x0041, 0xC100, 0x81C1, 0x4081, 0x0040, 0xC100, 0x81C1, 0x4081, 0x0140,
-    0xC001, 0x80C0, 0x4180, 0x0141, 0xC001, 0x80C0, 0x4180, 0x0041}; /* end for test */
+#if MAX_INPUT > 0
+	static unsigned char INPUT_MEM[MAX_INPUT / 8];
+#endif
+
+#if MAX_HOLDING_REGISTERS > 0
+	static uint16_t HOLDING_REGISTERS_MEM[MAX_HOLDING_REGISTERS];
+#endif
+
+#if MAX_INPUT_REGISTERS > 0
+	static uint16_t INPUT_REGISTERS_MEM[MAX_INPUT_REGISTERS];
+#endif
+
 
 /* private function's */
+
+#if MAX_COIL > 0
 static unsigned char SLAVE_Read_Coil_Status_Operation(
     unsigned char *RequestFrame, unsigned char *Constructed_ResponseFrame);
+#endif
+#if MAX_INPUT > 0
 static unsigned char SLAVE_Read_Input_Status_Operation(
     unsigned char *RequestFrame, unsigned char *Constructed_ResponseFrame);
+#endif
+#if MAX_HOLDING_REGISTERS > 0
 static unsigned char SLAVE_Read_Holding_Registers_Operation(
     unsigned char *RequestFrame, unsigned char *Constructed_ResponseFrame);
+#endif
+#if MAX_INPUT_REGISTERS > 0
 static unsigned char SLAVE_Read_Input_Registers_Operation(
     unsigned char *RequestFrame, unsigned char *Constructed_ResponseFrame);
+#endif
+#if MAX_COIL > 0
 static unsigned char SLAVE_Force_Single_Coil_Operation(
     unsigned char *RequestFrame, unsigned char *Constructed_ResponseFrame);
+#endif
+#if MAX_HOLDING_REGISTERS > 0
 static unsigned char SLAVE_Preset_Single_Register_Operation(
     unsigned char *RequestFrame, unsigned char *Constructed_ResponseFrame);
+#endif
+#if MAX_COIL > 0
 static unsigned char SLAVE_Force_Multiple_Coils_Operation(
     unsigned char *RequestFrame, unsigned char *Constructed_ResponseFrame);
+#endif
+#if MAX_HOLDING_REGISTERS > 0
 static unsigned char SLAVE_Preset_Multiple_Register_Operation(
     unsigned char *RequestFrame, unsigned char *Constructed_ResponseFrame);
-
+#endif
 
 
 /* */
@@ -189,23 +146,39 @@ unsigned char MODBUS_FARME_PROCESS(unsigned char *RequestFrame,
 
         if (function == Read_Coil_Status)
         {
+#if MAX_COIL > 0
             lengthOfResponseFrame = SLAVE_Read_Coil_Status_Operation(RequestFrame,
                                                                      ResponseFrame);
+#else
+            lengthOfResponseFrame =  Modbus_Exception(ILLEGAL_DATA_ADDRESS ,ResponseFrame);
+#endif
         }
         else if (function == Read_Input_Status)
         {
+#if MAX_INPUT > 0
             lengthOfResponseFrame = SLAVE_Read_Input_Status_Operation(RequestFrame,
                                                                       ResponseFrame);
+#else
+            lengthOfResponseFrame =  Modbus_Exception(ILLEGAL_DATA_ADDRESS ,ResponseFrame);
+#endif
         }
         else if (function == Read_Holding_Registers)
         {
+#if MAX_HOLDING_REGISTERS > 0
             lengthOfResponseFrame = SLAVE_Read_Holding_Registers_Operation(
                 RequestFrame, ResponseFrame);
+#else
+            lengthOfResponseFrame =  Modbus_Exception(ILLEGAL_DATA_ADDRESS ,ResponseFrame);
+#endif
         }
         else if (function == Read_Input_Registers)
         {
+#if MAX_INPUT_REGISTERS > 0
             lengthOfResponseFrame = SLAVE_Read_Input_Registers_Operation(
                 RequestFrame, ResponseFrame);
+#else
+            lengthOfResponseFrame =  Modbus_Exception(ILLEGAL_DATA_ADDRESS ,ResponseFrame);
+#endif
         }
 
 #ifdef WITHOUT_EEPROM
@@ -217,27 +190,43 @@ unsigned char MODBUS_FARME_PROCESS(unsigned char *RequestFrame,
 
         else if (function == Force_Single_Coil)
         {
+#if MAX_COIL > 0
             lengthOfResponseFrame = SLAVE_Force_Single_Coil_Operation(RequestFrame,
                                                                       ResponseFrame);
+#else
+            lengthOfResponseFrame =  Modbus_Exception(ILLEGAL_DATA_ADDRESS ,ResponseFrame);
+#endif
         }
         else if (function == Preset_Single_Register)
         {
+#if MAX_HOLDING_REGISTERS > 0
             lengthOfResponseFrame = SLAVE_Preset_Single_Register_Operation(
                 RequestFrame, ResponseFrame);
+#else
+            lengthOfResponseFrame =  Modbus_Exception(ILLEGAL_DATA_ADDRESS ,ResponseFrame);
+#endif
         }
         else if (function == Force_Multiple_Coils)
         {
+#if MAX_COIL > 0
             lengthOfResponseFrame = SLAVE_Force_Multiple_Coils_Operation(
                 RequestFrame, ResponseFrame);
+#else
+            lengthOfResponseFrame =  Modbus_Exception(ILLEGAL_DATA_ADDRESS ,ResponseFrame);
+#endif
         }
         else if (function == Preset_Multiple_Registers)
         {
+#if MAX_HOLDING_REGISTERS > 0
             lengthOfResponseFrame = SLAVE_Preset_Multiple_Register_Operation(
                 RequestFrame, ResponseFrame);
+#else
+            lengthOfResponseFrame =  Modbus_Exception(ILLEGAL_DATA_ADDRESS ,ResponseFrame);
+#endif
         }
         else{
-        	/* Not Supported */
-        	return 0;
+        	/* Function Not Supported */
+        	lengthOfResponseFrame =  Modbus_Exception(ILLEGAL_FUNCTION ,ResponseFrame);
         }
 
 
@@ -248,6 +237,7 @@ unsigned char MODBUS_FARME_PROCESS(unsigned char *RequestFrame,
     return lengthOfResponseFrame;
 }
 
+#if MAX_COIL > 0
 /**
  * @brief Reads the ON/OFF status of discrete outputs in the slave.
  * maximum parameters supported by various controller models:
@@ -263,6 +253,9 @@ static unsigned char SLAVE_Read_Coil_Status_Operation(
     unsigned int Start_address = RequestFrame[2] << 8 | RequestFrame[3];
     unsigned int Num_of_coil = RequestFrame[4] << 8 | RequestFrame[5];
     unsigned int Start_Coil = Start_address;
+
+    if (Start_address + Num_of_coil > MAX_COIL)
+    	return Modbus_Exception(ILLEGAL_DATA_ADDRESS, Constructed_ResponseFrame);
 
     /* Constructing the response frame to the master */
     Constructed_ResponseFrame[0] = RequestFrame[0]; /* Slave Address */
@@ -309,7 +302,9 @@ static unsigned char SLAVE_Read_Coil_Status_Operation(
 
     return 5 + Byte_Count;
 }
+#endif
 
+#if MAX_INPUT > 0
 /**
  * @brief Reads the ON/OFF status of discrete inputs in the slave.
  * maximum parameters supported by various controller models:
@@ -325,6 +320,9 @@ static unsigned char SLAVE_Read_Input_Status_Operation(
     unsigned int Start_address = RequestFrame[2] << 8 | RequestFrame[3];
     unsigned int Num_of_Input = RequestFrame[4] << 8 | RequestFrame[5];
     unsigned int Start_Input = Start_address;
+
+    if (Start_address + Num_of_Input > MAX_INPUT)
+    	return Modbus_Exception(ILLEGAL_DATA_ADDRESS, Constructed_ResponseFrame);
 
     /* Constructing the response frame to the master */
     Constructed_ResponseFrame[0] = RequestFrame[0]; /* Slave Address */
@@ -371,7 +369,9 @@ static unsigned char SLAVE_Read_Input_Status_Operation(
 
     return 5 + Byte_Count;
 }
+#endif
 
+#if MAX_HOLDING_REGISTERS > 0
 /**
  * @brief Reads the binary contents of holding registers in the slave.
  * maximum parameters supported by various controller models:
@@ -391,6 +391,9 @@ static unsigned char SLAVE_Read_Holding_Registers_Operation(
     unsigned int Start_address = RequestFrame[2] << 8 | RequestFrame[3];
     unsigned int Num_of_Holding_Registers = RequestFrame[4] << 8 | RequestFrame[5];
     unsigned int Start_Holding_Registers = Start_address;
+
+    if( Start_address + Num_of_Holding_Registers > MAX_HOLDING_REGISTERS)
+    	return Modbus_Exception(ILLEGAL_DATA_ADDRESS, Constructed_ResponseFrame);
 
     /* Constructing the response frame to the master */
     Constructed_ResponseFrame[0] = RequestFrame[0]; /* Slave Address */
@@ -421,7 +424,9 @@ static unsigned char SLAVE_Read_Holding_Registers_Operation(
 
     return 5 + Byte_Count;
 }
+#endif
 
+#if MAX_INPUT_REGISTERS > 0
 /**
  * @brief Reads the binary contents of input registers in the slave.
  * maximum parameters supported by various controller models:
@@ -440,6 +445,9 @@ static unsigned char SLAVE_Read_Input_Registers_Operation(
 {
     unsigned int Start_address = RequestFrame[2] << 8 | RequestFrame[3];
     unsigned int Num_of_Input_Registers = RequestFrame[4] << 8 | RequestFrame[5];
+
+    if(Start_address + Num_of_Input_Registers > MAX_INPUT_REGISTERS)
+    	return Modbus_Exception(ILLEGAL_DATA_ADDRESS, Constructed_ResponseFrame);
 
     /* Constructing the response frame to the master */
     Constructed_ResponseFrame[0] = RequestFrame[0]; /* Slave Address */
@@ -470,7 +478,9 @@ static unsigned char SLAVE_Read_Input_Registers_Operation(
 
     return 5 + Byte_Count;
 }
+#endif
 
+#if MAX_COIL > 0
 /**
  * @brief Forces a single coil to either ON or OFF. When broadcast, the
  * function forces the same coil reference in all attached slaves.
@@ -484,6 +494,9 @@ static unsigned char SLAVE_Force_Single_Coil_Operation(
 {
     unsigned int Start_address = RequestFrame[2] << 8 | RequestFrame[3];
     unsigned int Force_Data = RequestFrame[4] << 8 | RequestFrame[5];
+
+    if(Start_address > MAX_COIL)
+    	return Modbus_Exception(ILLEGAL_DATA_ADDRESS, Constructed_ResponseFrame);
 
     /* Write */
     if (Force_Data == 0xff00)
@@ -504,7 +517,9 @@ static unsigned char SLAVE_Force_Single_Coil_Operation(
 
     return 8;
 }
+#endif
 
+#if MAX_HOLDING_REGISTERS > 0
 /**
  * @brief Presets a value into a single holding register. When broadcast, the
  * function presets the same register reference in all attached slaves.
@@ -518,6 +533,9 @@ static unsigned char SLAVE_Preset_Single_Register_Operation(
 {
     unsigned int Start_address = RequestFrame[2] << 8 | RequestFrame[3];
     unsigned int Preset_Data = RequestFrame[4] << 8 | RequestFrame[5];
+
+    if(Start_address > MAX_HOLDING_REGISTERS)
+    	return Modbus_Exception(ILLEGAL_DATA_ADDRESS, Constructed_ResponseFrame);
 
     /* Write */
     HOLDING_REGISTERS_MEM[Start_address] = Preset_Data;
@@ -535,6 +553,7 @@ static unsigned char SLAVE_Preset_Single_Register_Operation(
 
     return 8;
 }
+#endif
 
 /**
  * @brief Reads the contents of eight Exception Status coils within the slave controller.
@@ -597,6 +616,7 @@ unsigned char SLAVE_Fetch_Comm_Event_Log_Operation(unsigned char *RequestFrame,
     return 0; //
 }
 
+#if MAX_COIL > 0
 /**
  * @brief Forces each coil in a sequence of coils to either ON or OFF.
  *
@@ -609,6 +629,9 @@ static unsigned char SLAVE_Force_Multiple_Coils_Operation(
 {
     unsigned int Start_address = RequestFrame[2] << 8 | RequestFrame[3];
     unsigned int Quantity_of_Coils = RequestFrame[4] << 8 | RequestFrame[5];
+
+    if(Start_address + Quantity_of_Coils > MAX_COIL)
+    	return Modbus_Exception(ILLEGAL_DATA_ADDRESS, Constructed_ResponseFrame);
 
     unsigned int coil_counter = Start_address;
     char bit = 0;
@@ -653,7 +676,9 @@ static unsigned char SLAVE_Force_Multiple_Coils_Operation(
 
     return 8; //
 }
+#endif
 
+#if MAX_HOLDING_REGISTERS > 0
 /**
  * @brief Presets values into a sequence of holding registers. When broadcast,
  * the function presets the same register references in all attached slaves.
@@ -667,6 +692,9 @@ static unsigned char SLAVE_Preset_Multiple_Register_Operation(
 {
     unsigned int Start_address = RequestFrame[2] << 8 | RequestFrame[3];
     unsigned int Number_of_Registers = RequestFrame[4] << 8 | RequestFrame[5];
+
+    if(Start_address + Number_of_Registers > MAX_HOLDING_REGISTERS)
+    	return Modbus_Exception(ILLEGAL_DATA_ADDRESS, Constructed_ResponseFrame);
 
     unsigned int registers_counter = Start_address;
     unsigned int Byte_Counter = 7;
@@ -696,6 +724,7 @@ static unsigned char SLAVE_Preset_Multiple_Register_Operation(
 
     return 8;
 }
+#endif
 
 /**
  * @brief
@@ -781,3 +810,25 @@ unsigned char SLAVE_Read_FIFO_Queue_Operation(
     return 0;
 }
 
+/**
+ * @brief
+ *
+ * @param Modbus_Exception
+ * @param ResponseFrame
+ * @return return Frame length
+ */
+unsigned char Modbus_Exception(Modbus_Exception_Code_t Modbus_Exception_Code, unsigned char *ResponseFrame){
+    /*
+     The normal response returns the slave address, function code, starting address,
+     and quantity of registers preset. */
+	ResponseFrame[0] = SLAVE_ADDRESS; 	/* Slave Address */
+	ResponseFrame[1] = 0x80; 			/* Function */
+	ResponseFrame[2] = Modbus_Exception_Code; /* Exception Code */
+
+    unsigned short crc = CRC16(ResponseFrame, 3);
+
+    ResponseFrame[3] = crc >> 8; /* CRC Lo */
+    ResponseFrame[4] = crc;      /* CRC Hi */
+
+    return 5;
+}

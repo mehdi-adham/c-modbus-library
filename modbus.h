@@ -20,15 +20,11 @@
 extern "C" {
 #endif
 
-/* 184/384:[800]   484:[512]     584/984/884:[2000]    M84:[64] */
-#define MAX_COIL      	2000
-#define MAX_INPUT      	2000
-
-/* 184/384:[100]   484:[254]     584/984/884:[125]    M84:[64] */
-#define MAX_HOLDING_REGISTERS       254
-
-/* 184/384:[100]   484:[32]     584/984/884:[125]    M84:[4] */
-#define MAX_INPUT_REGISTERS         254
+/* Modbus memory map for COIL, INPUT, HOLDING_REGISTERS, INPUT_REGISTERS */
+#define MAX_COIL      				8 /*< 184/384:[800]   484:[512]     584/984/884:[2000]    M84:[64] */
+#define MAX_INPUT      				0 /*< 184/384:[800]   484:[512]     584/984/884:[2000]    M84:[64] */
+#define MAX_HOLDING_REGISTERS       8 /*< 184/384:[100]   484:[254]     584/984/884:[125]    M84:[64] */
+#define MAX_INPUT_REGISTERS         0 /*< 184/384:[100]   484:[32]     584/984/884:[125]    M84:[4] */
 
 #define Broadcast	0
 
@@ -93,12 +89,38 @@ typedef struct Serial {
 	Stop_Bit_t StopBit;
 } Serial_t;
 
-/* Modbus Protocol Exceptions. */
+
+/* Modbus Exceptions. */
+typedef enum Modbus_Exception_Code{
+	ILLEGAL_FUNCTION		= 1, /*< The function code received in the query is not an allowable action for the slave.
+										If a Poll Program Complete command was issued, this code indicates that no program
+										function preceded it.*/
+
+	ILLEGAL_DATA_ADDRESS 	= 2, /*< The data address received in the query is not an allowable address for the slave.*/
+
+	ILLEGAL_DATA_VALUE		= 3, /*< A value contained in the query data field is not an allowable value for the slave.*/
+
+	SLAVE_DEVICE_FAILURE	= 4, /*< An unrecoverable error occurred while the slave was attempting to perform the requested action.*/
+
+	ACKNOWLEDGE				= 5, /*< The slave has accepted the request and is processing it, but a long duration of time will be
+										required to do so. This response is returned to prevent a timeout error from occurring in the master.
+										The master can next issue a Poll Program Complete message to determine if processing is completed.*/
+
+	SLAVE_DEVICE_BUSY		= 6, /*< The slave is engaged in processing a long–duration program command. The master should retransmit
+										the message later when the slave is free.*/
+
+	NEGATIVE_ACKNOWLEDGE	= 7, /*< The slave cannot perform the program function received in the query. This code is returned for an
+											unsuccessful programming request using function code 13 or 14 decimal.
+											The master should request diagnostic or error information from the slave.*/
+
+	MEMORY_PARITY_ERROR		= 8 /*< The slave attempted to read extended memory, but detected a parity error in the memory.
+										The master can retry the request, but service may be required on the slave device.*/
+}Modbus_Exception_Code_t;
 
 void modbus_serial_init(Serial_t  *serial);
 unsigned char Get_coil_status(int coli);
 unsigned char MODBUS_FARME_PROCESS(unsigned char *RequestFrame, unsigned char *ResponseFrame);
-
+unsigned char Modbus_Exception(Modbus_Exception_Code_t Modbus_Exception_Code, unsigned char *ResponseFrame);
 
 #ifdef __cplusplus
 }

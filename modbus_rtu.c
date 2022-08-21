@@ -82,7 +82,6 @@ void set_slave_ID(unsigned char slave_ID){
  * does not send the frame related to this device
  * @param Mode 1. Normal mode (by responding to the master and applying commands) 
  * 2. only listening mode (without responding to the master and without applying commands)
- * @return ModbusStatus_t Return Modbus Status
  */
 ModbusStatus_t MODBUS_RTU_MONITOR(unsigned char *mbus_frame_buffer,
 		int monitor_fun_timeout, volatile uint32_t *Tick, ModbusMonitorMode_t Mode) {
