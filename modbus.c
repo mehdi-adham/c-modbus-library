@@ -822,7 +822,7 @@ unsigned char Modbus_Exception(Modbus_Exception_Code_t Modbus_Exception_Code, un
      The normal response returns the slave address, function code, starting address,
      and quantity of registers preset. */
 	ResponseFrame[0] = SLAVE_ADDRESS; 	/* Slave Address */
-	ResponseFrame[1] = 0x80; 			/* Function */
+	ResponseFrame[1] = 0x81; 			/* Function */
 	ResponseFrame[2] = Modbus_Exception_Code; /* Exception Code */
 
     unsigned short crc = CRC16(ResponseFrame, 3);
