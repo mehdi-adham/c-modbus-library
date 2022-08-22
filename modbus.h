@@ -84,7 +84,7 @@ typedef enum Stop_Bit{
 
 typedef struct Serial {
 	uint32_t *UART;
-	int BaudRate;
+	uint32_t BaudRate;
 	Parity_t Parity;
 	Stop_Bit_t StopBit;
 } Serial_t;

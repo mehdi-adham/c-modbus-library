@@ -19,8 +19,8 @@ unsigned char SLAVE_ADDRESS;
 extern unsigned char auchCRCHi[];
 extern unsigned char auchCRCLo[];
 
-unsigned char frame_buffer[256];
-unsigned char response_buffer[256];
+unsigned char frame_buffer[MAX_BUFFER];
+unsigned char response_buffer[MAX_BUFFER];
 
 /**
  * @brief
@@ -216,6 +216,16 @@ ModbusStatus_t MODBUS_RTU_MONITOR(unsigned char *mbus_frame_buffer,
 
 		/* 8. Remain byte */
 		while (len) {
+			/* check overflow */
+			if(counter > MAX_BUFFER){
+				/* clear buffer */
+				while (starting_address_of_buffer < mbus_frame_buffer) {
+					frame_buffer[counter--] = *mbus_frame_buffer-- = 0x00;
+				}
+				/* return to 0. */
+				continue;
+			}
+
 			/* 8.1 */
 			res = (*receive_uart_fun)(&rec_byte);
 			if (res != MODBUS_OK)

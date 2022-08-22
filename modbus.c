@@ -17,8 +17,8 @@
  the uart_init Handler could be implemented in the user file
  * @return Modbus Status
  */
-__attribute__((weak)) void modbus_uart_init_Handler(Serial_t *Serial)
-{
+__attribute__((weak))	 void modbus_uart_init_Handler(Serial_t *Serial) {
+
 }
 
 extern unsigned char SLAVE_ADDRESS;
@@ -26,20 +26,21 @@ extern unsigned char SLAVE_ADDRESS;
 /* Memory map for COIL, INPUT, HOLDING_REGISTERS, INPUT_REGISTERS */
 
 #if MAX_COIL > 0
-static unsigned char COIL_MEM[MAX_COIL / 8];
+	static unsigned char COIL_MEM[MAX_COIL / 8];
 #endif
 
 #if MAX_INPUT > 0
-static unsigned char INPUT_MEM[MAX_INPUT / 8];
+	static unsigned char INPUT_MEM[MAX_INPUT / 8];
 #endif
 
 #if MAX_HOLDING_REGISTERS > 0
-static uint16_t HOLDING_REGISTERS_MEM[MAX_HOLDING_REGISTERS];
+	static uint16_t HOLDING_REGISTERS_MEM[MAX_HOLDING_REGISTERS];
 #endif
 
 #if MAX_INPUT_REGISTERS > 0
-static uint16_t INPUT_REGISTERS_MEM[MAX_INPUT_REGISTERS];
+	static uint16_t INPUT_REGISTERS_MEM[MAX_INPUT_REGISTERS];
 #endif
+
 
 /* private function's */
 
@@ -76,6 +77,7 @@ static unsigned char SLAVE_Preset_Multiple_Register_Operation(
     unsigned char *RequestFrame, unsigned char *Constructed_ResponseFrame);
 #endif
 
+
 /* */
 unsigned char SLAVE_Read_Exception_Status_Operation(
     unsigned char *RequestFrame, unsigned char *Constructed_ResponseFrame);
@@ -103,21 +105,19 @@ unsigned char SLAVE_Read_FIFO_Queue_Operation(
  *
  * @param serial UART parameter
  */
-void modbus_serial_init(Serial_t *serial)
-{
-    modbus_uart_init_Handler(serial);
+void modbus_serial_init(Serial_t  *serial){
+	modbus_uart_init_Handler(serial);
 }
 
 /**
  * @brief Get coil status from coil array COIL_MEM[].
- *
- * @param coil
+ * 
+ * @param coil 
  * @return Return coil status from coil array COIL_MEM[].
  */
-unsigned char Get_coil_status(int coil)
-{
-    coil--;
-    return (COIL_MEM[coil / 8] >> coil & 1);
+unsigned char Get_coil_status(int coil){
+	coil--;
+	return (COIL_MEM[coil / 8] >> coil & 1);
 }
 /**
  * @brief This function is to prepare the response to the master and perform the commands
@@ -150,7 +150,7 @@ unsigned char MODBUS_FARME_PROCESS(unsigned char *RequestFrame,
             lengthOfResponseFrame = SLAVE_Read_Coil_Status_Operation(RequestFrame,
                                                                      ResponseFrame);
 #else
-        lengthOfResponseFrame = Modbus_Exception(ILLEGAL_DATA_ADDRESS, ResponseFrame);
+            lengthOfResponseFrame =  Modbus_Exception(ILLEGAL_DATA_ADDRESS ,ResponseFrame);
 #endif
         }
         else if (function == Read_Input_Status)
@@ -159,7 +159,7 @@ unsigned char MODBUS_FARME_PROCESS(unsigned char *RequestFrame,
             lengthOfResponseFrame = SLAVE_Read_Input_Status_Operation(RequestFrame,
                                                                       ResponseFrame);
 #else
-        lengthOfResponseFrame = Modbus_Exception(ILLEGAL_DATA_ADDRESS, ResponseFrame);
+            lengthOfResponseFrame =  Modbus_Exception(ILLEGAL_DATA_ADDRESS ,ResponseFrame);
 #endif
         }
         else if (function == Read_Holding_Registers)
@@ -168,7 +168,7 @@ unsigned char MODBUS_FARME_PROCESS(unsigned char *RequestFrame,
             lengthOfResponseFrame = SLAVE_Read_Holding_Registers_Operation(
                 RequestFrame, ResponseFrame);
 #else
-        lengthOfResponseFrame = Modbus_Exception(ILLEGAL_DATA_ADDRESS, ResponseFrame);
+            lengthOfResponseFrame =  Modbus_Exception(ILLEGAL_DATA_ADDRESS ,ResponseFrame);
 #endif
         }
         else if (function == Read_Input_Registers)
@@ -177,7 +177,7 @@ unsigned char MODBUS_FARME_PROCESS(unsigned char *RequestFrame,
             lengthOfResponseFrame = SLAVE_Read_Input_Registers_Operation(
                 RequestFrame, ResponseFrame);
 #else
-        lengthOfResponseFrame = Modbus_Exception(ILLEGAL_DATA_ADDRESS, ResponseFrame);
+            lengthOfResponseFrame =  Modbus_Exception(ILLEGAL_DATA_ADDRESS ,ResponseFrame);
 #endif
         }
 
@@ -194,7 +194,7 @@ unsigned char MODBUS_FARME_PROCESS(unsigned char *RequestFrame,
             lengthOfResponseFrame = SLAVE_Force_Single_Coil_Operation(RequestFrame,
                                                                       ResponseFrame);
 #else
-        lengthOfResponseFrame = Modbus_Exception(ILLEGAL_DATA_ADDRESS, ResponseFrame);
+            lengthOfResponseFrame =  Modbus_Exception(ILLEGAL_DATA_ADDRESS ,ResponseFrame);
 #endif
         }
         else if (function == Preset_Single_Register)
@@ -203,7 +203,7 @@ unsigned char MODBUS_FARME_PROCESS(unsigned char *RequestFrame,
             lengthOfResponseFrame = SLAVE_Preset_Single_Register_Operation(
                 RequestFrame, ResponseFrame);
 #else
-        lengthOfResponseFrame = Modbus_Exception(ILLEGAL_DATA_ADDRESS, ResponseFrame);
+            lengthOfResponseFrame =  Modbus_Exception(ILLEGAL_DATA_ADDRESS ,ResponseFrame);
 #endif
         }
         else if (function == Force_Multiple_Coils)
@@ -212,7 +212,7 @@ unsigned char MODBUS_FARME_PROCESS(unsigned char *RequestFrame,
             lengthOfResponseFrame = SLAVE_Force_Multiple_Coils_Operation(
                 RequestFrame, ResponseFrame);
 #else
-        lengthOfResponseFrame = Modbus_Exception(ILLEGAL_DATA_ADDRESS, ResponseFrame);
+            lengthOfResponseFrame =  Modbus_Exception(ILLEGAL_DATA_ADDRESS ,ResponseFrame);
 #endif
         }
         else if (function == Preset_Multiple_Registers)
@@ -221,14 +221,14 @@ unsigned char MODBUS_FARME_PROCESS(unsigned char *RequestFrame,
             lengthOfResponseFrame = SLAVE_Preset_Multiple_Register_Operation(
                 RequestFrame, ResponseFrame);
 #else
-        lengthOfResponseFrame = Modbus_Exception(ILLEGAL_DATA_ADDRESS, ResponseFrame);
+            lengthOfResponseFrame =  Modbus_Exception(ILLEGAL_DATA_ADDRESS ,ResponseFrame);
 #endif
         }
-        else
-        {
-            /* Function Not Supported */
-            lengthOfResponseFrame = Modbus_Exception(ILLEGAL_FUNCTION, ResponseFrame);
+        else{
+        	/* Function Not Supported */
+        	lengthOfResponseFrame =  Modbus_Exception(ILLEGAL_FUNCTION ,ResponseFrame);
         }
+
 
 #ifdef WITHOUT_EEPROM
     }
@@ -255,7 +255,7 @@ static unsigned char SLAVE_Read_Coil_Status_Operation(
     unsigned int Start_Coil = Start_address;
 
     if (Start_address + Num_of_coil > MAX_COIL)
-        return Modbus_Exception(ILLEGAL_DATA_ADDRESS, Constructed_ResponseFrame);
+    	return Modbus_Exception(ILLEGAL_DATA_ADDRESS, Constructed_ResponseFrame);
 
     /* Constructing the response frame to the master */
     Constructed_ResponseFrame[0] = RequestFrame[0]; /* Slave Address */
@@ -322,7 +322,7 @@ static unsigned char SLAVE_Read_Input_Status_Operation(
     unsigned int Start_Input = Start_address;
 
     if (Start_address + Num_of_Input > MAX_INPUT)
-        return Modbus_Exception(ILLEGAL_DATA_ADDRESS, Constructed_ResponseFrame);
+    	return Modbus_Exception(ILLEGAL_DATA_ADDRESS, Constructed_ResponseFrame);
 
     /* Constructing the response frame to the master */
     Constructed_ResponseFrame[0] = RequestFrame[0]; /* Slave Address */
@@ -392,8 +392,8 @@ static unsigned char SLAVE_Read_Holding_Registers_Operation(
     unsigned int Num_of_Holding_Registers = RequestFrame[4] << 8 | RequestFrame[5];
     unsigned int Start_Holding_Registers = Start_address;
 
-    if (Start_address + Num_of_Holding_Registers > MAX_HOLDING_REGISTERS)
-        return Modbus_Exception(ILLEGAL_DATA_ADDRESS, Constructed_ResponseFrame);
+    if( Start_address + Num_of_Holding_Registers > MAX_HOLDING_REGISTERS)
+    	return Modbus_Exception(ILLEGAL_DATA_ADDRESS, Constructed_ResponseFrame);
 
     /* Constructing the response frame to the master */
     Constructed_ResponseFrame[0] = RequestFrame[0]; /* Slave Address */
@@ -446,8 +446,8 @@ static unsigned char SLAVE_Read_Input_Registers_Operation(
     unsigned int Start_address = RequestFrame[2] << 8 | RequestFrame[3];
     unsigned int Num_of_Input_Registers = RequestFrame[4] << 8 | RequestFrame[5];
 
-    if (Start_address + Num_of_Input_Registers > MAX_INPUT_REGISTERS)
-        return Modbus_Exception(ILLEGAL_DATA_ADDRESS, Constructed_ResponseFrame);
+    if(Start_address + Num_of_Input_Registers > MAX_INPUT_REGISTERS)
+    	return Modbus_Exception(ILLEGAL_DATA_ADDRESS, Constructed_ResponseFrame);
 
     /* Constructing the response frame to the master */
     Constructed_ResponseFrame[0] = RequestFrame[0]; /* Slave Address */
@@ -495,8 +495,8 @@ static unsigned char SLAVE_Force_Single_Coil_Operation(
     unsigned int Start_address = RequestFrame[2] << 8 | RequestFrame[3];
     unsigned int Force_Data = RequestFrame[4] << 8 | RequestFrame[5];
 
-    if (Start_address > MAX_COIL)
-        return Modbus_Exception(ILLEGAL_DATA_ADDRESS, Constructed_ResponseFrame);
+    if(Start_address > MAX_COIL)
+    	return Modbus_Exception(ILLEGAL_DATA_ADDRESS, Constructed_ResponseFrame);
 
     /* Write */
     if (Force_Data == 0xff00)
@@ -534,8 +534,8 @@ static unsigned char SLAVE_Preset_Single_Register_Operation(
     unsigned int Start_address = RequestFrame[2] << 8 | RequestFrame[3];
     unsigned int Preset_Data = RequestFrame[4] << 8 | RequestFrame[5];
 
-    if (Start_address > MAX_HOLDING_REGISTERS)
-        return Modbus_Exception(ILLEGAL_DATA_ADDRESS, Constructed_ResponseFrame);
+    if(Start_address > MAX_HOLDING_REGISTERS)
+    	return Modbus_Exception(ILLEGAL_DATA_ADDRESS, Constructed_ResponseFrame);
 
     /* Write */
     HOLDING_REGISTERS_MEM[Start_address] = Preset_Data;
@@ -630,8 +630,8 @@ static unsigned char SLAVE_Force_Multiple_Coils_Operation(
     unsigned int Start_address = RequestFrame[2] << 8 | RequestFrame[3];
     unsigned int Quantity_of_Coils = RequestFrame[4] << 8 | RequestFrame[5];
 
-    if (Start_address + Quantity_of_Coils > MAX_COIL)
-        return Modbus_Exception(ILLEGAL_DATA_ADDRESS, Constructed_ResponseFrame);
+    if(Start_address + Quantity_of_Coils > MAX_COIL)
+    	return Modbus_Exception(ILLEGAL_DATA_ADDRESS, Constructed_ResponseFrame);
 
     unsigned int coil_counter = Start_address;
     char bit = 0;
@@ -693,8 +693,8 @@ static unsigned char SLAVE_Preset_Multiple_Register_Operation(
     unsigned int Start_address = RequestFrame[2] << 8 | RequestFrame[3];
     unsigned int Number_of_Registers = RequestFrame[4] << 8 | RequestFrame[5];
 
-    if (Start_address + Number_of_Registers > MAX_HOLDING_REGISTERS)
-        return Modbus_Exception(ILLEGAL_DATA_ADDRESS, Constructed_ResponseFrame);
+    if(Start_address + Number_of_Registers > MAX_HOLDING_REGISTERS)
+    	return Modbus_Exception(ILLEGAL_DATA_ADDRESS, Constructed_ResponseFrame);
 
     unsigned int registers_counter = Start_address;
     unsigned int Byte_Counter = 7;
@@ -737,7 +737,7 @@ unsigned char SLAVE_Report_Slave_ID_Operation(
     unsigned char *RequestFrame, unsigned char *Constructed_ResponseFrame)
 {
 
-    return 0;
+     return 0;
 }
 
 /**
@@ -775,7 +775,7 @@ unsigned char SLAVE_Write_General_Reference_Operation(
  * @param Constructed_ResponseFrame
  * @return return Frame length
  */
-unsigned char SLAVE_Mask_Write_4X_Register_Operation(
+ unsigned char SLAVE_Mask_Write_4X_Register_Operation(
     unsigned char *RequestFrame, unsigned char *Constructed_ResponseFrame)
 {
 
@@ -789,7 +789,7 @@ unsigned char SLAVE_Mask_Write_4X_Register_Operation(
  * @param Constructed_ResponseFrame
  * @return return Frame length
  */
-unsigned char SLAVE_Read_Write_4X_Registers_Operation(
+ unsigned char SLAVE_Read_Write_4X_Registers_Operation(
     unsigned char *RequestFrame, unsigned char *Constructed_ResponseFrame)
 {
 
@@ -817,12 +817,11 @@ unsigned char SLAVE_Read_FIFO_Queue_Operation(
  * @param ResponseFrame
  * @return return Frame length
  */
-unsigned char Modbus_Exception(Modbus_Exception_Code_t Modbus_Exception_Code, unsigned char *ResponseFrame)
-{
+unsigned char Modbus_Exception(Modbus_Exception_Code_t Modbus_Exception_Code, unsigned char *ResponseFrame){
 
-    ResponseFrame[0] = SLAVE_ADDRESS;         /* Slave Address */
-    ResponseFrame[1] = 0x81;                  /* Function */
-    ResponseFrame[2] = Modbus_Exception_Code; /* Exception Code */
+	ResponseFrame[0] = SLAVE_ADDRESS; 	/* Slave Address */
+	ResponseFrame[1] = 0x81; 			/* Function */
+	ResponseFrame[2] = Modbus_Exception_Code; /* Exception Code */
 
     unsigned short crc = CRC16(ResponseFrame, 3);
 
