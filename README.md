@@ -8,6 +8,7 @@
 - Input discrete(if used by the user)
 - Holding Register (if used by the user)
 - Input register (if used by the user)
+
 To do this, in the Modbus library, change the following definitions in this file according to the needs of your program.
 
 ```c
