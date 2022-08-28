@@ -3,6 +3,21 @@
 
 ## How to use the Modbus library (current version)
 
+### Setup memory for
+- Coil (if used by the user)
+- Input discrete(if used by the user)
+- Holding Register (if used by the user)
+- Input register (if used by the user)
+To do this, in the Modbus library, change the following definitions in this file according to the needs of your program.
+
+```c
+/* Modbus memory map for COIL, INPUT, HOLDING_REGISTERS, INPUT_REGISTERS */
+#define MAX_COIL      				8 /*< 184/384:[800]   484:[512]     584/984/884:[2000]    M84:[64] */
+#define MAX_INPUT      				0 /*< 184/384:[800]   484:[512]     584/984/884:[2000]    M84:[64] */
+#define MAX_HOLDING_REGISTERS       		8 /*< 184/384:[100]   484:[254]     584/984/884:[125]    M84:[64] */
+#define MAX_INPUT_REGISTERS         		0 /*< 184/384:[100]   484:[32]     584/984/884:[125]    M84:[4] */
+```
+
 ### Set slave device
 ```c
 set_slave_ID(17);
