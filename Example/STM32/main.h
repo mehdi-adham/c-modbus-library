@@ -68,12 +68,32 @@ void Error_Handler(void);
 #define DS_3_GPIO_Port GPIOA
 #define DS_4_Pin GPIO_PIN_3
 #define DS_4_GPIO_Port GPIOA
+#define DS_5_Pin GPIO_PIN_4
+#define DS_5_GPIO_Port GPIOA
 #define COIL_1_Pin GPIO_PIN_0
 #define COIL_1_GPIO_Port GPIOB
 #define COIL_2_Pin GPIO_PIN_1
 #define COIL_2_GPIO_Port GPIOB
-#define RX_Pin GPIO_PIN_10
-#define RX_GPIO_Port GPIOA
+#define COIL_3_Pin GPIO_PIN_2
+#define COIL_3_GPIO_Port GPIOB
+#define DS_6_Pin GPIO_PIN_12
+#define DS_6_GPIO_Port GPIOB
+#define DS_7_Pin GPIO_PIN_13
+#define DS_7_GPIO_Port GPIOB
+#define DS_8_Pin GPIO_PIN_14
+#define DS_8_GPIO_Port GPIOB
+#define DIR_Pin GPIO_PIN_11
+#define DIR_GPIO_Port GPIOA
+#define COIL_4_Pin GPIO_PIN_3
+#define COIL_4_GPIO_Port GPIOB
+#define COIL_5_Pin GPIO_PIN_4
+#define COIL_5_GPIO_Port GPIOB
+#define COIL_6_Pin GPIO_PIN_5
+#define COIL_6_GPIO_Port GPIOB
+#define COIL_7_Pin GPIO_PIN_6
+#define COIL_7_GPIO_Port GPIOB
+#define COIL_8_Pin GPIO_PIN_7
+#define COIL_8_GPIO_Port GPIOB
 /* USER CODE BEGIN Private defines */
 
 /* USER CODE END Private defines */

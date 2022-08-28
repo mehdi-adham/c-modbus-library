@@ -19,8 +19,8 @@ unsigned char SLAVE_ADDRESS;
 extern unsigned char auchCRCHi[];
 extern unsigned char auchCRCLo[];
 
-unsigned char frame_buffer[MAX_BUFFER];
-unsigned char response_buffer[MAX_BUFFER];
+unsigned char frame_buffer[256];
+unsigned char response_buffer[256];
 
 /**
  * @brief

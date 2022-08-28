@@ -119,6 +119,17 @@ unsigned char Get_coil_status(int coil){
 	coil--;
 	return (COIL_MEM[coil / 8] >> coil & 1);
 }
+
+/**
+ * @brief Get holding register from array HOLDING_REGISTERS_MEM[].
+ *
+ * @param coil
+ * @return Return holding register from array HOLDING_REGISTERS_MEM[].
+ */
+unsigned char Get_holding_register(int Holding_Register_Address){
+	Holding_Register_Address--;
+	return HOLDING_REGISTERS_MEM[Holding_Register_Address];
+}
 /**
  * @brief This function is to prepare the response to the master and perform the commands
  * (write/read on the coil and register, etc.) according to the function code.

@@ -119,6 +119,7 @@ typedef enum Modbus_Exception_Code{
 
 void modbus_serial_init(Serial_t  *serial);
 unsigned char Get_coil_status(int coli);
+unsigned char Get_holding_register(int Holding_Register_Address);
 unsigned char MODBUS_FARME_PROCESS(unsigned char *RequestFrame, unsigned char *ResponseFrame);
 unsigned char Modbus_Exception(Modbus_Exception_Code_t Modbus_Exception_Code, unsigned char *ResponseFrame);
 
