@@ -14,20 +14,8 @@
 #include "modbus_handler.h"
 
 /* Private define */
-#define HexASCII_Covert(HexASCII) \
-    do                            \
-    {                             \
-        unsigned ret;             \
-        if (HexASCII < 40)        \
-        {                         \
-            ret = HexASCII -= 30; \
-        }                         \
-        else                      \
-        {                         \
-            ret = HexASCII -= 65  \
-        }                         \
-        return ret;               \
-    } while (0);
+#define __HexASCII_Covert(__HexASCII__) (__HexASCII__ < 58 ? (__HexASCII__ - 48) : (__HexASCII__ - 55))
+
 
 // START    0x3A        ':'
 // END      0x0A 0x0D   'CR' 'LF'
@@ -107,16 +95,13 @@ ModbusStatus_t MODBUS_ASCII_MONITOR(unsigned char *mbus_frame_buffer,
         /* 5. MODBUS PROCESS for Constructed Response Frame */
         uint16_t len = MODBUS_FARME_PROCESS(frame_buffer, response_buffer);
 
-
         /* 6. Hex ASCII convert*/
-
 
         /* 7. Add LRC to response frame */
 
+        /* 8. Transmit frame */
+        (*transmit_uart_fun)(response_buffer, len);
+    }
 
-		/* 8. Transmit frame */
-		(*transmit_uart_fun)(response_buffer, len);
-	}
-
-	return MODBUS_OK;
+    return MODBUS_OK;
 }
