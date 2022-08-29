@@ -14,8 +14,7 @@
 #include "modbus_handler.h"
 
 /* Private define */
-#define __HexASCII_Covert(__HexASCII__) (__HexASCII__ < 58 ? (__HexASCII__ - 48) : (__HexASCII__ - 55))
-
+#define __HexASCII_Convert(__HexASCII__) (__HexASCII__ < 58 ? (__HexASCII__ - 48) : (__HexASCII__ - 55))
 
 // START    0x3A        ':'
 // END      0x0A 0x0D   'CR' 'LF'
@@ -58,9 +57,9 @@ ModbusStatus_t MODBUS_ASCII_MONITOR(unsigned char *mbus_frame_buffer,
         } while (res != ':');
 
         res = (*receive_uart_fun)(&rec_char);
-        add = HexASCII_Covert(rec_char);
+        add = __HexASCII_Convert(rec_char) * 16;
         res = (*receive_uart_fun)(&rec_char);
-        add += HexASCII_Covert(rec_char);
+        add += __HexASCII_Convert(rec_char);
 
         unsigned char add = 0;
         /* 2. if out of range allowed address OR Address field not match with slave ID AND not broadcast */
@@ -77,10 +76,10 @@ ModbusStatus_t MODBUS_ASCII_MONITOR(unsigned char *mbus_frame_buffer,
         do
         {
             res = (*receive_uart_fun)(&first_char);
-            first_char = HexASCII_Covert(first_char);
+            first_char = __HexASCII_Convert(first_char) * 16;
 
             res = (*receive_uart_fun)(&second_char);
-            second_char = HexASCII_Covert(second_char);
+            second_char = __HexASCII_Convert(second_char);
 
             frame_buffer[counter++] = *mbus_frame_buffer++ = first_char + second_char;
         } while (first_char != 0x0D /*'CR'*/ && second_char != 0x0A /*'LF'*/);
