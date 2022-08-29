@@ -55,7 +55,7 @@ we use the Modbus network monitor function According to the above settings, this
 
 ### How to use Modbus Handler function's (current version)
 
-Copy the Modbus Handler functions from the modbus_rtu.c library and use it in your file for implementation.
+Copy the Modbus Handler functions from the modbus_handler.h file and use it in your file for implementation.
 
 ```c
 /**
@@ -78,11 +78,7 @@ __attribute__((weak)) 	void modbus_uart_transmit_Handler(uint8_t *Data,
 		uint16_t length) {
 
 }
-```
 
-Copy the Modbus Handler functions from the modbus.c library and use it in your file for implementation.
-
-```c
 /**
  * @brief
  * NOTE : This function should not be modified, when the callback is needed,
