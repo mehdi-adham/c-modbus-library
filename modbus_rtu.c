@@ -12,9 +12,9 @@
 #include "modbus.h"
 #include "modbus_rtu.h"
 #include "CRC.h"
-#include <stdint.h>
+#include "modbus_handler.h"
 
-unsigned char SLAVE_ADDRESS;
+extern unsigned char SLAVE_ADDRESS;
 
 extern unsigned char auchCRCHi[];
 extern unsigned char auchCRCLo[];
@@ -22,31 +22,10 @@ extern unsigned char auchCRCLo[];
 unsigned char frame_buffer[256];
 unsigned char response_buffer[256];
 
-/**
- * @brief
- * NOTE : This function should not be modified, when the callback is needed,
- the uart_receive Handler could be implemented in the user file
- * @return Modbus Status
- */
-__attribute__((weak))	 ModbusStatus_t modbus_uart_receive_Handler(uint8_t *Data) {
-	return 0;
-}
 
 /**
  * @brief
- * NOTE : This function should not be modified, when the callback is needed,
- the uart transmit Handler could be implemented in the user file
- * @return None
- */
-__attribute__((weak)) 	void modbus_uart_transmit_Handler(uint8_t *Data,
-		uint16_t length) {
-
-}
-
-/**
- * @brief
- *
- * @param slave_ID
+ * * @param slave_ID
  */
 void set_slave_ID(unsigned char slave_ID){
 	SLAVE_ADDRESS = slave_ID;
@@ -272,6 +251,14 @@ ModbusStatus_t MODBUS_RTU_MONITOR(unsigned char *mbus_frame_buffer,
 	if(Mode == Normal){
 		/* 10. MODBUS PROCESS for Constructed Response Frame */
 		uint16_t len = MODBUS_FARME_PROCESS(frame_buffer, response_buffer);
+
+
+		/* Add CRC to response frame */
+	    unsigned short crc = CRC16(response_buffer, len);
+		response_buffer[len] = crc >> 8; /* CRC Lo */
+		response_buffer[len + 1] = crc; /* CRC Hi */
+
+		len += 2;
 
 		/* 11. Transmit frame */
 		(*transmit_uart_fun)(response_buffer, len);

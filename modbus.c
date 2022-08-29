@@ -9,19 +9,9 @@
  *
  */
 #include "modbus.h"
-#include "CRC.h"
+#include "modbus_handler.h"
 
-/**
- * @brief
- * NOTE : This function should not be modified, when the callback is needed,
- the uart_init Handler could be implemented in the user file
- * @return Modbus Status
- */
-__attribute__((weak))	 void modbus_uart_init_Handler(Serial_t *Serial) {
-
-}
-
-extern unsigned char SLAVE_ADDRESS;
+unsigned char SLAVE_ADDRESS;
 
 /* Memory map for COIL, INPUT, HOLDING_REGISTERS, INPUT_REGISTERS */
 
@@ -123,7 +113,7 @@ unsigned char Get_coil_status(int coil){
 /**
  * @brief Get holding register from array HOLDING_REGISTERS_MEM[].
  *
- * @param coil
+ * @param holding register
  * @return Return holding register from array HOLDING_REGISTERS_MEM[].
  */
 unsigned char Get_holding_register(int Holding_Register_Address){
@@ -136,7 +126,7 @@ unsigned char Get_holding_register(int Holding_Register_Address){
  *
  * @param RequestFrame
  * @param ResponseFrame
- * @return Return length Of Response Frame
+ * @return Return length Of Response Frame (without CRC OR LRC in serial mode)
  */
 unsigned char MODBUS_FARME_PROCESS(unsigned char *RequestFrame,
                                    unsigned char *ResponseFrame)
@@ -306,12 +296,7 @@ static unsigned char SLAVE_Read_Coil_Status_Operation(
 
     Constructed_ResponseFrame[2] = Byte_Count; /* Byte Count */
 
-    unsigned short crc = CRC16(Constructed_ResponseFrame, 3 + Byte_Count);
-
-    Constructed_ResponseFrame[3 + Byte_Count] = crc >> 8; /* CRC Lo */
-    Constructed_ResponseFrame[3 + Byte_Count + 1] = crc;  /* CRC Hi */
-
-    return 5 + Byte_Count;
+    return 3 + Byte_Count;
 }
 #endif
 
@@ -373,12 +358,7 @@ static unsigned char SLAVE_Read_Input_Status_Operation(
 
     Constructed_ResponseFrame[2] = Byte_Count; /* Byte Count */
 
-    unsigned short crc = CRC16(Constructed_ResponseFrame, 3 + Byte_Count);
-
-    Constructed_ResponseFrame[3 + Byte_Count] = crc >> 8; /* CRC Lo */
-    Constructed_ResponseFrame[3 + Byte_Count + 1] = crc;  /* CRC Hi */
-
-    return 5 + Byte_Count;
+    return 3 + Byte_Count;
 }
 #endif
 
@@ -428,12 +408,7 @@ static unsigned char SLAVE_Read_Holding_Registers_Operation(
 
     Constructed_ResponseFrame[2] = Byte_Count; /* Byte Count */
 
-    unsigned short crc = CRC16(Constructed_ResponseFrame, 3 + Byte_Count);
-
-    Constructed_ResponseFrame[3 + Byte_Count] = crc >> 8; /* CRC Lo */
-    Constructed_ResponseFrame[3 + Byte_Count + 1] = crc;  /* CRC Hi */
-
-    return 5 + Byte_Count;
+    return 3 + Byte_Count;
 }
 #endif
 
@@ -482,12 +457,7 @@ static unsigned char SLAVE_Read_Input_Registers_Operation(
 
     Constructed_ResponseFrame[2] = Byte_Count; /* Byte Count */
 
-    unsigned short crc = CRC16(Constructed_ResponseFrame, 3 + Byte_Count);
-
-    Constructed_ResponseFrame[3 + Byte_Count] = crc >> 8; /* CRC Lo */
-    Constructed_ResponseFrame[3 + Byte_Count + 1] = crc;  /* CRC Hi */
-
-    return 5 + Byte_Count;
+    return 3 + Byte_Count;
 }
 #endif
 
@@ -523,10 +493,8 @@ static unsigned char SLAVE_Force_Single_Coil_Operation(
     Constructed_ResponseFrame[3] = RequestFrame[3]; /* Coil Address Lo */
     Constructed_ResponseFrame[4] = RequestFrame[4]; /* Force Data Hi */
     Constructed_ResponseFrame[5] = RequestFrame[5]; /* Force Data Lo */
-    Constructed_ResponseFrame[6] = RequestFrame[6]; /* CRC Hi */
-    Constructed_ResponseFrame[7] = RequestFrame[7]; /* CRC Lo */
 
-    return 8;
+    return 6;
 }
 #endif
 
@@ -559,10 +527,8 @@ static unsigned char SLAVE_Preset_Single_Register_Operation(
     Constructed_ResponseFrame[3] = RequestFrame[3]; /* Register Address Lo */
     Constructed_ResponseFrame[4] = RequestFrame[4]; /* Preset Data Hi */
     Constructed_ResponseFrame[5] = RequestFrame[5]; /* Preset Data Lo */
-    Constructed_ResponseFrame[6] = RequestFrame[6]; /* CRC Hi */
-    Constructed_ResponseFrame[7] = RequestFrame[7]; /* CRC Lo */
 
-    return 8;
+    return 6;
 }
 #endif
 
@@ -680,12 +646,8 @@ static unsigned char SLAVE_Force_Multiple_Coils_Operation(
     Constructed_ResponseFrame[4] = RequestFrame[4]; /* Quantity of Coils Hi */
     Constructed_ResponseFrame[5] = RequestFrame[5]; /* Quantity of Coils Lo */
 
-    unsigned short crc = CRC16(Constructed_ResponseFrame, 6);
 
-    Constructed_ResponseFrame[6] = crc >> 8; /* CRC Lo */
-    Constructed_ResponseFrame[7] = crc;      /* CRC Hi */
-
-    return 8; //
+    return 6; //
 }
 #endif
 
@@ -728,12 +690,7 @@ static unsigned char SLAVE_Preset_Multiple_Register_Operation(
     Constructed_ResponseFrame[4] = RequestFrame[4]; /* No. of Registers Hi */
     Constructed_ResponseFrame[5] = RequestFrame[5]; /* No. of Registers Lo */
 
-    unsigned short crc = CRC16(Constructed_ResponseFrame, 6);
-
-    Constructed_ResponseFrame[6] = crc >> 8; /* CRC Lo */
-    Constructed_ResponseFrame[7] = crc;      /* CRC Hi */
-
-    return 8;
+    return 6;
 }
 #endif
 
@@ -834,10 +791,5 @@ unsigned char Modbus_Exception(Modbus_Exception_Code_t Modbus_Exception_Code, un
 	ResponseFrame[1] = 0x81; 			/* Function */
 	ResponseFrame[2] = Modbus_Exception_Code; /* Exception Code */
 
-    unsigned short crc = CRC16(ResponseFrame, 3);
-
-    ResponseFrame[3] = crc >> 8; /* CRC Lo */
-    ResponseFrame[4] = crc;      /* CRC Hi */
-
-    return 5;
+    return 3;
 }
