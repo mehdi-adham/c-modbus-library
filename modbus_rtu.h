@@ -19,10 +19,6 @@ extern "C"
 
 #include <stdbool.h>
 
-#define MAX_BUFFER          256
-#define MAX_SLAVE_ADDRESS   247
-
-#define frame_timeout  5	/*< ms */
 
 void set_slave_ID(unsigned char slave_ID);
 ModbusStatus_t MODBUS_RTU_MONITOR(unsigned char *mbus_frame_buffer,

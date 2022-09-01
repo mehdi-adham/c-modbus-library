@@ -14,13 +14,15 @@
 #include "CRC.h"
 #include "modbus_handler.h"
 
+//#define speed_test
+
 extern unsigned char SLAVE_ADDRESS;
 
 extern unsigned char auchCRCHi[];
 extern unsigned char auchCRCLo[];
 
-unsigned char frame_buffer[256];
-unsigned char response_buffer[256];
+unsigned char frame_buffer[MAX_BUFFER];
+unsigned char response_buffer[MAX_BUFFER];
 
 
 /**
@@ -64,6 +66,15 @@ void set_slave_ID(unsigned char slave_ID){
  */
 ModbusStatus_t MODBUS_RTU_MONITOR(unsigned char *mbus_frame_buffer,
 		int monitor_fun_timeout, volatile uint32_t *Tick, ModbusMonitorMode_t Mode) {
+
+#ifdef speed_test
+	uint32_t tickstart_for_tr_time;
+	uint32_t currenttick_for_tr_time;
+	unsigned int tr_time ;
+
+	tickstart_for_tr_time = *Tick;
+#endif
+
 	unsigned char uchCRCHi = 0xFF; /* high byte of CRC initialized */
 	unsigned char uchCRCLo = 0xFF; /* low byte of CRC initialized */
 	unsigned char uIndex; /* will index into CRC lookup table */
@@ -248,9 +259,20 @@ ModbusStatus_t MODBUS_RTU_MONITOR(unsigned char *mbus_frame_buffer,
 		break;
 	}/*< End while() for frame time out */
 
+#ifdef speed_test
+		currenttick_for_tr_time = *Tick;
+				tr_time = currenttick_for_tr_time - tickstart_for_tr_time;
+				Set_holding_register(4, tr_time);
+
+#endif
+
 	if(Mode == Normal){
+
+#ifdef speed_test
+	tickstart_for_tr_time = *Tick;
+#endif
 		/* 10. MODBUS PROCESS for Constructed Response Frame */
-		uint16_t len = MODBUS_FARME_PROCESS(frame_buffer, response_buffer);
+		uint8_t len = MODBUS_FARME_PROCESS(frame_buffer, response_buffer);
 
 
 		/* Add CRC to response frame */
@@ -260,8 +282,23 @@ ModbusStatus_t MODBUS_RTU_MONITOR(unsigned char *mbus_frame_buffer,
 
 		len += 2;
 
+#ifdef speed_test
+		currenttick_for_tr_time = *Tick;
+				tr_time = currenttick_for_tr_time - tickstart_for_tr_time;
+				Set_holding_register(5, tr_time);
+
+
+	tickstart_for_tr_time = *Tick;
+#endif
+
 		/* 11. Transmit frame */
 		(*transmit_uart_fun)(response_buffer, len);
+
+#ifdef speed_test
+		currenttick_for_tr_time = *Tick;
+						tr_time = currenttick_for_tr_time - tickstart_for_tr_time;
+						Set_holding_register(6, tr_time - RS485_Delay);
+#endif
 	}
 
 	return MODBUS_OK;

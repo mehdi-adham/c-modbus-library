@@ -120,6 +120,12 @@ unsigned char Get_holding_register(int Holding_Register_Address){
 	Holding_Register_Address--;
 	return HOLDING_REGISTERS_MEM[Holding_Register_Address];
 }
+
+void Set_holding_register(int Holding_Register_Address, unsigned int value){
+	Holding_Register_Address--;
+	HOLDING_REGISTERS_MEM[Holding_Register_Address] = value;
+}
+
 /**
  * @brief This function is to prepare the response to the master and perform the commands
  * (write/read on the coil and register, etc.) according to the function code.

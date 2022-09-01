@@ -21,12 +21,18 @@ extern "C" {
 #endif
 
 /* Modbus memory map for COIL, INPUT, HOLDING_REGISTERS, INPUT_REGISTERS */
-#define MAX_COIL      				8 /*< 184/384:[800]   484:[512]     584/984/884:[2000]    M84:[64] */
-#define MAX_INPUT      				0 /*< 184/384:[800]   484:[512]     584/984/884:[2000]    M84:[64] */
-#define MAX_HOLDING_REGISTERS       8 /*< 184/384:[100]   484:[254]     584/984/884:[125]    M84:[64] */
-#define MAX_INPUT_REGISTERS         0 /*< 184/384:[100]   484:[32]     584/984/884:[125]    M84:[4] */
+#define MAX_COIL      				8 	/*< 184/384:[800]   484:[512]     584/984/884:[2000]    M84:[64] */
+#define MAX_INPUT      				0 		/*< 184/384:[800]   484:[512]     584/984/884:[2000]    M84:[64] */
+#define MAX_HOLDING_REGISTERS       8 	/*< 184/384:[100]   484:[254]     584/984/884:[125]    M84:[64] */
+#define MAX_INPUT_REGISTERS         0 		/*< 184/384:[100]   484:[32]     584/984/884:[125]    M84:[4] */
 
 #define Broadcast	0
+
+#define RS485_Delay							5  		/*< ms */
+#define Modbus_Communication_timeout		10 		/*< ms */
+
+#define MAX_BUFFER          255
+#define MAX_SLAVE_ADDRESS   247
 
 /* Modbus function codes. */
 enum Modbus_Function_Name{
@@ -120,6 +126,7 @@ typedef enum Modbus_Exception_Code{
 void modbus_serial_init(Serial_t  *serial);
 unsigned char Get_coil_status(int coli);
 unsigned char Get_holding_register(int Holding_Register_Address);
+void Set_holding_register(int Holding_Register_Address, unsigned int value);
 unsigned char MODBUS_FARME_PROCESS(unsigned char *RequestFrame, unsigned char *ResponseFrame);
 unsigned char Modbus_Exception(Modbus_Exception_Code_t Modbus_Exception_Code, unsigned char *ResponseFrame);
 

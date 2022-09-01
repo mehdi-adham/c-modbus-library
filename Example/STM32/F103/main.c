@@ -24,11 +24,12 @@
 /* USER CODE BEGIN Includes */
 #include "modbus.h"
 #include "modbus_rtu.h"
+#include "modbus_ascii.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
 /* USER CODE BEGIN PTD */
-
+//#define speed_test
 /* USER CODE END PTD */
 
 /* Private define ------------------------------------------------------------*/
@@ -47,7 +48,7 @@ UART_HandleTypeDef huart1;
 extern __IO uint32_t uwTick;
 uint8_t buff[250];
 uint8_t response[250];
-int timeout_3_5C = 40; // ms ((1000 * 4 * 11) / buadrate);
+uint8_t timeout_3_5C = 10; // ms ((1000 * 4 * 11) / buadrate);
 
 /* USER CODE END PV */
 
@@ -58,14 +59,52 @@ static void MX_USART1_UART_Init(void);
 /* USER CODE BEGIN PFP */
 ModbusStatus_t modbus_uart_receive_Handler(uint8_t *Data) {
 	ModbusStatus_t res;
-	res = (ModbusStatus_t) HAL_UART_Receive(&huart1, Data, 1, timeout_3_5C);
+	res = (ModbusStatus_t) HAL_UART_Receive(&huart1, Data, 1, Modbus_Communication_timeout);
 	return res;
 }
 
 void modbus_uart_transmit_Handler(uint8_t *Data, uint16_t length) {
-	HAL_Delay(5);
+	HAL_Delay(RS485_Delay);
 	HAL_GPIO_WritePin(DIR_GPIO_Port, DIR_Pin, GPIO_PIN_SET);
-	HAL_UART_Transmit(&huart1, Data, length, 100);
+
+#ifdef speed_test
+	uint32_t tickstart_for_tr_time;
+	uint32_t currenttick_for_tr_time;
+	static uint8_t cntr = 0;
+	unsigned int tr_time ;
+
+	if (cntr%2==0){
+		tickstart_for_tr_time = uwTick;
+
+		UART_HandleTypeDef *huart = &huart1;
+
+		while (length--) {
+			/* Wait until flag is set */
+			while (((huart->Instance->SR & (UART_FLAG_TXE)) == (UART_FLAG_TXE) ? SET : RESET) == RESET);
+			huart->Instance->DR = (*Data++);
+		}
+		/* Wait until flag is set */
+		while (((huart->Instance->SR & (UART_FLAG_TC)) == (UART_FLAG_TC) ? SET : RESET) == RESET);
+
+
+		currenttick_for_tr_time = uwTick;
+		tr_time = currenttick_for_tr_time - tickstart_for_tr_time;
+		Set_holding_register(1, tr_time);
+	}
+	else{
+		tickstart_for_tr_time = uwTick;
+#endif
+
+	HAL_UART_Transmit(&huart1, Data, length, 1000);
+
+#ifdef speed_test
+	currenttick_for_tr_time = uwTick;
+	tr_time = currenttick_for_tr_time - tickstart_for_tr_time;
+	Set_holding_register(2, tr_time);
+	}
+	cntr++;
+#endif
+
 	HAL_GPIO_WritePin(DIR_GPIO_Port, DIR_Pin, GPIO_PIN_RESET);
 }
 
@@ -91,6 +130,7 @@ void modbus_uart_init_Handler(Serial_t *Serial) {
 	huart1.Init.OverSampling = UART_OVERSAMPLING_16;
 
 	HAL_UART_Init(&huart1);
+
 }
 
 
@@ -189,6 +229,7 @@ int main(void)
 
 	modbus_serial_init(&default_serial);
 
+	//timeout_3_5C = ((1000 * 4 * 11) / baudrate) + 1;
 
 	unsigned char previous_coils_val[1];
 	uint16_t previous_holding_register_val[8];
@@ -203,7 +244,8 @@ int main(void)
 	HAL_GPIO_WritePin(COIL_7_GPIO_Port, COIL_7_Pin, !Get_coil_status(7) | !Get_holding_register(7));
 	HAL_GPIO_WritePin(COIL_8_GPIO_Port, COIL_8_Pin, !Get_coil_status(8) | !Get_holding_register(8));
 
-
+	/* busy LED */
+	HAL_GPIO_WritePin(busy_led_GPIO_Port, busy_led_Pin, GPIO_PIN_SET);
 
 	while (1) {
 
@@ -218,9 +260,23 @@ int main(void)
 			previous_holding_register_val[add] = Get_holding_register(add + 1);
 		}
 
+#ifdef speed_test
+	uint32_t tickstart_for_tr_time;
+	uint32_t currenttick_for_tr_time;
+	unsigned int tr_time ;
 
+
+	tickstart_for_tr_time = uwTick;
+#endif
 		/* Modbus network monitor to receive frames from the master device */
 		ModbusStatus_t res = MODBUS_RTU_MONITOR(buff, 3000, &uwTick, Normal);
+		//ModbusStatus_t res = MODBUS_ASCII_MONITOR(buff, 3000, &uwTick, Normal);
+#ifdef speed_test
+		currenttick_for_tr_time = uwTick;
+				tr_time = currenttick_for_tr_time - tickstart_for_tr_time;
+				Set_holding_register(3, tr_time);
+
+#endif
 
 		/* Busy led: Changing the status of the busy LED (according to 
 		 the status of the Modbus monitor function) */
