@@ -48,7 +48,6 @@ UART_HandleTypeDef huart1;
 extern __IO uint32_t uwTick;
 uint8_t buff[250];
 uint8_t response[250];
-uint8_t timeout_3_5C = 10; // ms ((1000 * 4 * 11) / buadrate);
 
 /* USER CODE END PV */
 

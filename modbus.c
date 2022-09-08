@@ -11,7 +11,7 @@
 #include "modbus.h"
 #include "modbus_handler.h"
 
-unsigned char SLAVE_ADDRESS;
+static unsigned char SLAVE_ADDRESS;
 
 /* Memory map for COIL, INPUT, HOLDING_REGISTERS, INPUT_REGISTERS */
 
@@ -100,6 +100,22 @@ void modbus_serial_init(Serial_t  *serial){
 }
 
 /**
+ * @brief
+ * * @param slave_ID
+ */
+void set_slave_ID(unsigned char slave_ID){
+	SLAVE_ADDRESS = slave_ID;
+}
+
+/**
+ * @brief
+ * @return SLAVE_ADDRESS
+ */
+unsigned char get_slave_ID(){
+	return SLAVE_ADDRESS;
+}
+
+/**
  * @brief Get coil status from coil array COIL_MEM[].
  * 
  * @param coil 
@@ -111,6 +127,20 @@ unsigned char Get_coil_status(int coil){
 }
 
 /**
+ * @brief Set coil status into coil array COIL_MEM[].
+ *
+ * @param coil
+ * @param coil status
+ * @return Return coil status from coil array COIL_MEM[].
+ */
+void Set_coil_status(int coil, unsigned int status){
+	coil--;
+    if (status == 1)
+        COIL_MEM[(coil / 8)] |= (1 << coil % 8);
+    else
+        COIL_MEM[(coil / 8)] &= ~(1 << coil % 8);
+}
+/**
  * @brief Get holding register from array HOLDING_REGISTERS_MEM[].
  *
  * @param holding register
@@ -121,6 +151,12 @@ unsigned char Get_holding_register(int Holding_Register_Address){
 	return HOLDING_REGISTERS_MEM[Holding_Register_Address];
 }
 
+/**
+ * @brief Set holding register into array HOLDING_REGISTERS_MEM[].
+ *
+ * @param holding register
+ * @param holding register value
+ */
 void Set_holding_register(int Holding_Register_Address, unsigned int value){
 	Holding_Register_Address--;
 	HOLDING_REGISTERS_MEM[Holding_Register_Address] = value;

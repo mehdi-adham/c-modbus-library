@@ -12,9 +12,6 @@
 #ifndef __MODBUS_ASCII_H
 #define __MODBUS_ASCII_H
 
-#define MAX_BUFFER          256
-#define MAX_SLAVE_ADDRESS   247
-#define timeout_1C_ascii     1000 /*< (ms) */
 
 ModbusStatus_t MODBUS_ASCII_MONITOR(unsigned char *mbus_frame_buffer,
 		int monitor_fun_timeout, volatile uint32_t *Tick,

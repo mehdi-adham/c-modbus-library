@@ -67,6 +67,8 @@ ModbusStatus_t MODBUS_ASCII_MONITOR(unsigned char *mbus_frame_buffer,
 			uint16_t length) = modbus_uart_transmit_Handler;
 	uint16_t counter = 0;
 
+	unsigned char SLAVE_ADDRESS = get_slave_ID();
+
 	/* Initial tick start for monitor timeout management */
 	tickstart_for_monitor_timeout = *Tick;
 	while (1) {
