@@ -123,6 +123,20 @@ typedef enum Modbus_Exception_Code{
 										The master can retry the request, but service may be required on the slave device.*/
 }Modbus_Exception_Code_t;
 
+typedef struct frame_parameter{
+	unsigned char slave_ID;
+	unsigned char function;
+	unsigned int start_address;
+	unsigned char quantity;
+} frame_parameter_t;
+
+typedef struct communication_parameter {
+	unsigned char RS_485_Delay;
+	unsigned char communication_timeout;
+	unsigned char communication_retry_Times;
+}communication_parameter_t;
+
+
 void modbus_serial_init(Serial_t  *serial);
 
 void set_slave_ID(unsigned char slave_ID);
@@ -130,11 +144,14 @@ unsigned char get_slave_ID(void);
 
 unsigned char Get_coil_status(int coli);
 void Set_coil_status(int coil, unsigned int status);
-unsigned char Get_holding_register(int Holding_Register_Address);
+unsigned int Get_holding_register(int Holding_Register_Address);
 void Set_holding_register(int Holding_Register_Address, unsigned int value);
 
 unsigned char MODBUS_FARME_PROCESS(unsigned char *RequestFrame, unsigned char *ResponseFrame);
 unsigned char Modbus_Exception(Modbus_Exception_Code_t Modbus_Exception_Code, unsigned char *ResponseFrame);
+ModbusStatus_t MODBUS_MASTER_PROCESS(frame_parameter_t *frame_parameter, 
+				communication_parameter_t *communication_parameter, 
+				Serial_Transmission_Modes_t transmission_mode, volatile uint32_t *Tick);
 
 #ifdef __cplusplus
 }
