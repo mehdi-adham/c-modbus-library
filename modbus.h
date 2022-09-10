@@ -127,12 +127,12 @@ typedef struct frame_parameter{
 	unsigned char slave_ID;
 	unsigned char function;
 	unsigned int start_address;
-	unsigned char quantity;
+	unsigned int quantity;
 } frame_parameter_t;
 
 typedef struct communication_parameter {
 	unsigned char RS_485_Delay;
-	unsigned char communication_timeout;
+	unsigned int communication_timeout;
 	unsigned char communication_retry_Times;
 }communication_parameter_t;
 

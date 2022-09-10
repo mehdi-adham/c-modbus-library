@@ -136,7 +136,6 @@ unsigned char Get_coil_status(int coil)
  *
  * @param coil
  * @param coil status
- * @return Return coil status from coil array COIL_MEM[].
  */
 void Set_coil_status(int coil, unsigned int status)
 {
@@ -869,20 +868,41 @@ ModbusStatus_t MODBUS_MASTER_PROCESS(frame_parameter_t *frame_parameter,
     frame_buffer[1] = frame_parameter->function;             /* Function Code */
     frame_buffer[2] = frame_parameter->start_address >> 8;   /* Address Hi */
     frame_buffer[3] = frame_parameter->start_address & 0xff; /* Address Lo */
-    frame_buffer[4] = frame_parameter->quantity >> 8;        /* No. of Registers Hi */
-    frame_buffer[5] = frame_parameter->quantity & 0xff;      /* No. of Registers Lo */
 
     unsigned char fun = frame_parameter->function;
-    int len = 6;
-    if (fun == Force_Single_Coil || fun == Preset_Single_Register)
+    int len = 4;
+    if (fun == Force_Single_Coil)
     {
+        if (Get_coil_status(frame_parameter->start_address + 1) == 1)
+        {
+            frame_buffer[4] = 0xFF;
+            frame_buffer[5] = 0x00;
+        }
+        else
+        {
+            frame_buffer[4] = 0x00;
+            frame_buffer[5] = 0x00;
+        }
     }
-    else if (fun == Force_Multiple_Coils)
+    else if (fun == Preset_Single_Register)
+    {
+        unsigned int res = Get_holding_register(frame_parameter->start_address + 1);
+        frame_buffer[4] = res << 8;
+        frame_buffer[5] |= res & 0xff;
+    }
+    else
+    {
+        frame_buffer[4] = frame_parameter->quantity >> 8;   /* No. of Registers Hi */
+        frame_buffer[5] = frame_parameter->quantity & 0xff; /* No. of Registers Lo */
+    }
+    len = 6;
+
+    if (fun == Force_Multiple_Coils)
     {
         frame_buffer[6] = (frame_parameter->quantity / 8) + 1; /* Byte Count */
         len++;
 
-        unsigned int coil_counter = frame_parameter->start_address;
+        unsigned int coil_counter = frame_parameter->start_address + 1;
         char bit = 0;
         unsigned int Byte_Counter = 0;
         unsigned char coil;
@@ -891,13 +911,13 @@ ModbusStatus_t MODBUS_MASTER_PROCESS(frame_parameter_t *frame_parameter,
         while (coil_counter < frame_parameter->quantity + frame_parameter->start_address)
         {
             /* 1. Get coil value from COIL_MEM. */
-            coil = (COIL_MEM[coil_counter / 8] >> bit % 8) & 1;
+            coil = Get_coil_status(coil_counter);
 
             /* 2. Set coli's in data frame (in bit located) */
             if (coil == 1)
-                COIL_MEM[coil_counter / 8] |= (1 << coil_counter % 8);
+                frame_buffer[Byte_Counter] |= (1 << bit);
             else
-                COIL_MEM[coil_counter / 8] &= ~(1 << coil_counter % 8);
+                frame_buffer[Byte_Counter] &= ~(1 << bit);
 
             /* 2.1 bit 0 - 7 then plus array byte */
             if (bit++ == 7)
@@ -915,12 +935,13 @@ ModbusStatus_t MODBUS_MASTER_PROCESS(frame_parameter_t *frame_parameter,
         frame_buffer[6] = frame_parameter->quantity / 2; /* Byte Count */
         len++;
 
-        unsigned int registers_counter = frame_parameter->start_address;
+        unsigned int registers_counter = frame_parameter->start_address + 1;
 
         while (registers_counter < frame_parameter->quantity + frame_parameter->start_address)
         {
-            frame_buffer[len++] = HOLDING_REGISTERS_MEM[registers_counter] << 8;
-            frame_buffer[len++] |= HOLDING_REGISTERS_MEM[registers_counter];
+            unsigned int hreg = Get_holding_register(registers_counter);
+            frame_buffer[len++] = hreg << 8;
+            frame_buffer[len++] |= hreg & 0xff;
             registers_counter++;
         }
     }
