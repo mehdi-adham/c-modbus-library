@@ -9,6 +9,7 @@
  *
  */
 #include "modbus.h"
+#include "modbus_rtu.h"
 #include "modbus_handler.h"
 
 static unsigned char SLAVE_ADDRESS;
@@ -183,17 +184,6 @@ unsigned char MODBUS_FARME_PROCESS(unsigned char *RequestFrame,
     unsigned char lengthOfResponseFrame;
     unsigned char function = RequestFrame[1];
 
-#ifdef WITHOUT_EEPROM
-    /**
-     * After the micro reset, when the monitor function is called for the first
-     * time in the program, a write command must be given by the master, not a
-     * read command, because the memory of all registers, coils, etc has been
-     * reset to zero, and it must be initialized again.
-     */
-    if (Run_for_first_time != First_time)
-    {
-#endif
-
         if (function == Read_Coil_Status)
         {
 #if MAX_COIL > 0
@@ -230,13 +220,6 @@ unsigned char MODBUS_FARME_PROCESS(unsigned char *RequestFrame,
         lengthOfResponseFrame = Modbus_Exception(ILLEGAL_DATA_ADDRESS, ResponseFrame);
 #endif
         }
-
-#ifdef WITHOUT_EEPROM
-    }
-    else if (Run_for_first_time == First_time)
-    {
-        Run_for_first_time = !First_time;
-#endif
 
         else if (function == Force_Single_Coil)
         {
@@ -279,10 +262,6 @@ unsigned char MODBUS_FARME_PROCESS(unsigned char *RequestFrame,
             /* Function Not Supported */
             lengthOfResponseFrame = Modbus_Exception(ILLEGAL_FUNCTION, ResponseFrame);
         }
-
-#ifdef WITHOUT_EEPROM
-    }
-#endif
 
     return lengthOfResponseFrame;
 }
@@ -840,141 +819,4 @@ unsigned char Modbus_Exception(Modbus_Exception_Code_t Modbus_Exception_Code, un
     ResponseFrame[2] = Modbus_Exception_Code; /* Exception Code */
 
     return 3;
-}
-
-/**
- * @brief
- *
- * @param frame_parameter
- * @param communication_parameter
- * @param transmission_mode
- * @param Tick
- * @return ModbusStatus_t
- */
-ModbusStatus_t MODBUS_MASTER_PROCESS(frame_parameter_t *frame_parameter,
-                                     communication_parameter_t *communication_parameter,
-                                     Serial_Transmission_Modes_t transmission_mode, volatile uint32_t *Tick)
-{
-    unsigned char (*receive_uart_fun)() = modbus_uart_receive_Handler;
-    void (*transmit_uart_fun)(uint8_t * Data,
-                              uint16_t length) = modbus_uart_transmit_Handler;
-    unsigned char rec_byte;
-    ModbusStatus_t res;
-    uint32_t tickstart_for_comm_timeout;
-    uint32_t currenttick_for_comm_timeout;
-
-    /* 1. make request frame */
-    frame_buffer[0] = frame_parameter->slave_ID;             /* Slave Address */
-    frame_buffer[1] = frame_parameter->function;             /* Function Code */
-    frame_buffer[2] = frame_parameter->start_address >> 8;   /* Address Hi */
-    frame_buffer[3] = frame_parameter->start_address & 0xff; /* Address Lo */
-
-    unsigned char fun = frame_parameter->function;
-    int len = 4;
-    if (fun == Force_Single_Coil)
-    {
-        if (Get_coil_status(frame_parameter->start_address + 1) == 1)
-        {
-            frame_buffer[4] = 0xFF;
-            frame_buffer[5] = 0x00;
-        }
-        else
-        {
-            frame_buffer[4] = 0x00;
-            frame_buffer[5] = 0x00;
-        }
-    }
-    else if (fun == Preset_Single_Register)
-    {
-        unsigned int res = Get_holding_register(frame_parameter->start_address + 1);
-        frame_buffer[4] = res << 8;
-        frame_buffer[5] |= res & 0xff;
-    }
-    else
-    {
-        frame_buffer[4] = frame_parameter->quantity >> 8;   /* No. of Registers Hi */
-        frame_buffer[5] = frame_parameter->quantity & 0xff; /* No. of Registers Lo */
-    }
-    len = 6;
-
-    if (fun == Force_Multiple_Coils)
-    {
-        frame_buffer[6] = (frame_parameter->quantity / 8) + 1; /* Byte Count */
-        len++;
-
-        unsigned int coil_counter = frame_parameter->start_address + 1;
-        char bit = 0;
-        unsigned int Byte_Counter = 0;
-        unsigned char coil;
-
-        /* Write */
-        while (coil_counter < frame_parameter->quantity + frame_parameter->start_address)
-        {
-            /* 1. Get coil value from COIL_MEM. */
-            coil = Get_coil_status(coil_counter);
-
-            /* 2. Set coli's in data frame (in bit located) */
-            if (coil == 1)
-                frame_buffer[Byte_Counter] |= (1 << bit);
-            else
-                frame_buffer[Byte_Counter] &= ~(1 << bit);
-
-            /* 2.1 bit 0 - 7 then plus array byte */
-            if (bit++ == 7)
-            {
-                bit = 0;
-                Byte_Counter++;
-            }
-
-            coil_counter++;
-        }
-        len += Byte_Counter;
-    }
-    else if (fun == Preset_Multiple_Registers)
-    {
-        frame_buffer[6] = frame_parameter->quantity / 2; /* Byte Count */
-        len++;
-
-        unsigned int registers_counter = frame_parameter->start_address + 1;
-
-        while (registers_counter < frame_parameter->quantity + frame_parameter->start_address)
-        {
-            unsigned int hreg = Get_holding_register(registers_counter);
-            frame_buffer[len++] = hreg << 8;
-            frame_buffer[len++] |= hreg & 0xff;
-            registers_counter++;
-        }
-    }
-
-    if (transmission_mode == RTU)
-    {
-        /* 2. Add CRC to frame */
-        unsigned short crc = CRC16(response_buffer, len);
-        frame_buffer[len] = crc >> 8; /* CRC Lo */
-        frame_buffer[len + 1] = crc;  /* CRC Hi */
-
-        len += 2;
-
-        unsigned char retry_Times = communication_parameter->communication_retry_Times;
-        set_slave_ID(frame_parameter->slave_ID);
-        do
-        {
-            /* 3. Transmit frame */
-            (*transmit_uart_fun)(frame_buffer, len);
-
-            /* 5. */
-            ModbusStatus_t res = MODBUS_RTU_MONITOR(response_buffer,
-                                                    communication_parameter->communication_timeout,
-                                                    Tick, Listen_Only);
-            /* 6. */
-            if (res == MODBUS_MONITOR_TIMEOUT)
-                continue;
-            /* 7. */
-            else
-                return MODBUS_OK;
-
-        } while (retry_Times--); /*< 4. */
-    }
-
-    return MODBUS_OK;
 }

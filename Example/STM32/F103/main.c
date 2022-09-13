@@ -24,7 +24,6 @@
 /* USER CODE BEGIN Includes */
 #include "modbus.h"
 #include "modbus_rtu.h"
-#include "modbus_ascii.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -46,9 +45,8 @@ UART_HandleTypeDef huart1;
 
 /* USER CODE BEGIN PV */
 extern __IO uint32_t uwTick;
-uint8_t buff[250];
-uint8_t response[250];
-
+uint8_t buff[MAX_BUFFER];
+uint8_t response[MAX_BUFFER];
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -66,43 +64,7 @@ void modbus_uart_transmit_Handler(uint8_t *Data, uint16_t length) {
 	HAL_Delay(RS485_Delay);
 	HAL_GPIO_WritePin(DIR_GPIO_Port, DIR_Pin, GPIO_PIN_SET);
 
-#ifdef speed_test
-	uint32_t tickstart_for_tr_time;
-	uint32_t currenttick_for_tr_time;
-	static uint8_t cntr = 0;
-	unsigned int tr_time ;
-
-	if (cntr%2==0){
-		tickstart_for_tr_time = uwTick;
-
-		UART_HandleTypeDef *huart = &huart1;
-
-		while (length--) {
-			/* Wait until flag is set */
-			while (((huart->Instance->SR & (UART_FLAG_TXE)) == (UART_FLAG_TXE) ? SET : RESET) == RESET);
-			huart->Instance->DR = (*Data++);
-		}
-		/* Wait until flag is set */
-		while (((huart->Instance->SR & (UART_FLAG_TC)) == (UART_FLAG_TC) ? SET : RESET) == RESET);
-
-
-		currenttick_for_tr_time = uwTick;
-		tr_time = currenttick_for_tr_time - tickstart_for_tr_time;
-		Set_holding_register(1, tr_time);
-	}
-	else{
-		tickstart_for_tr_time = uwTick;
-#endif
-
 	HAL_UART_Transmit(&huart1, Data, length, 1000);
-
-#ifdef speed_test
-	currenttick_for_tr_time = uwTick;
-	tr_time = currenttick_for_tr_time - tickstart_for_tr_time;
-	Set_holding_register(2, tr_time);
-	}
-	cntr++;
-#endif
 
 	HAL_GPIO_WritePin(DIR_GPIO_Port, DIR_Pin, GPIO_PIN_RESET);
 }
@@ -228,8 +190,6 @@ int main(void)
 
 	modbus_serial_init(&default_serial);
 
-	//timeout_3_5C = ((1000 * 4 * 11) / baudrate) + 1;
-
 	unsigned char previous_coils_val[1];
 	uint16_t previous_holding_register_val[8];
 
@@ -259,23 +219,8 @@ int main(void)
 			previous_holding_register_val[add] = Get_holding_register(add + 1);
 		}
 
-#ifdef speed_test
-	uint32_t tickstart_for_tr_time;
-	uint32_t currenttick_for_tr_time;
-	unsigned int tr_time ;
-
-
-	tickstart_for_tr_time = uwTick;
-#endif
 		/* Modbus network monitor to receive frames from the master device */
 		ModbusStatus_t res = MODBUS_RTU_MONITOR(buff, 3000, &uwTick, Normal);
-		//ModbusStatus_t res = MODBUS_ASCII_MONITOR(buff, 3000, &uwTick, Normal);
-#ifdef speed_test
-		currenttick_for_tr_time = uwTick;
-				tr_time = currenttick_for_tr_time - tickstart_for_tr_time;
-				Set_holding_register(3, tr_time);
-
-#endif
 
 		/* Busy led: Changing the status of the busy LED (according to 
 		 the status of the Modbus monitor function) */

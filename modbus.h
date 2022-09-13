@@ -20,6 +20,9 @@
 extern "C" {
 #endif
 
+#define MASTER
+//#define SLAVE
+
 /* Modbus memory map for COIL, INPUT, HOLDING_REGISTERS, INPUT_REGISTERS */
 #define MAX_COIL      				8 	/*< 184/384:[800]   484:[512]     584/984/884:[2000]    M84:[64] */
 #define MAX_INPUT      				0 		/*< 184/384:[800]   484:[512]     584/984/884:[2000]    M84:[64] */
@@ -149,9 +152,9 @@ void Set_holding_register(int Holding_Register_Address, unsigned int value);
 
 unsigned char MODBUS_FARME_PROCESS(unsigned char *RequestFrame, unsigned char *ResponseFrame);
 unsigned char Modbus_Exception(Modbus_Exception_Code_t Modbus_Exception_Code, unsigned char *ResponseFrame);
-ModbusStatus_t MODBUS_MASTER_PROCESS(frame_parameter_t *frame_parameter, 
-				communication_parameter_t *communication_parameter, 
-				Serial_Transmission_Modes_t transmission_mode, volatile uint32_t *Tick);
+ModbusStatus_t MODBUS_MASTER_PROCESS(frame_parameter_t *frame_parameter,
+                                     communication_parameter_t *communication_parameter,
+                                     Serial_Transmission_Modes_t transmission_mode, volatile uint32_t *Tick);
 
 #ifdef __cplusplus
 }

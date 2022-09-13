@@ -13,8 +13,6 @@
 #include "modbus_rtu.h"
 #include "modbus_handler.h"
 
-//#define speed_test
-
 unsigned char frame_buffer[MAX_BUFFER];
 unsigned char response_buffer[MAX_BUFFER];
 
@@ -129,14 +127,6 @@ unsigned short CRC16(const unsigned char *puchMsg, unsigned short usDataLen) {
  */
 ModbusStatus_t MODBUS_RTU_MONITOR(unsigned char *mbus_frame_buffer,
 		int monitor_fun_timeout, volatile uint32_t *Tick, ModbusMonitorMode_t Mode) {
-
-#ifdef speed_test
-	uint32_t tickstart_for_tr_time;
-	uint32_t currenttick_for_tr_time;
-	unsigned int tr_time ;
-
-	tickstart_for_tr_time = *Tick;
-#endif
 
 	unsigned char uchCRCHi = 0xFF; /* high byte of CRC initialized */
 	unsigned char uchCRCLo = 0xFF; /* low byte of CRC initialized */
@@ -324,18 +314,9 @@ ModbusStatus_t MODBUS_RTU_MONITOR(unsigned char *mbus_frame_buffer,
 		break;
 	}/*< End while() for frame time out */
 
-#ifdef speed_test
-		currenttick_for_tr_time = *Tick;
-				tr_time = currenttick_for_tr_time - tickstart_for_tr_time;
-				Set_holding_register(4, tr_time);
-
-#endif
 
 	if(Mode == Normal){
 
-#ifdef speed_test
-	tickstart_for_tr_time = *Tick;
-#endif
 		/* 10. MODBUS PROCESS for Constructed Response Frame */
 		uint8_t len = MODBUS_FARME_PROCESS(frame_buffer, response_buffer);
 
@@ -347,24 +328,17 @@ ModbusStatus_t MODBUS_RTU_MONITOR(unsigned char *mbus_frame_buffer,
 
 		len += 2;
 
-#ifdef speed_test
-		currenttick_for_tr_time = *Tick;
-				tr_time = currenttick_for_tr_time - tickstart_for_tr_time;
-				Set_holding_register(5, tr_time);
-
-
-	tickstart_for_tr_time = *Tick;
-#endif
-
 		/* 11. Transmit frame */
 		(*transmit_uart_fun)(response_buffer, len);
 
-#ifdef speed_test
-		currenttick_for_tr_time = *Tick;
-						tr_time = currenttick_for_tr_time - tickstart_for_tr_time;
-						Set_holding_register(6, tr_time - RS485_Delay);
-#endif
 	}
 
 	return MODBUS_OK;
 }
+
+#ifdef MASTER
+ModbusStatus_t MODBUS_RTU_MASTER_SCAN_for_receive_response(int scan_timeout, volatile uint32_t *Tick) {
+
+	return MODBUS_OK;
+}
+#endif
